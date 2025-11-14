@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Trade - Forex Journal{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-edit me-2"></i>Edit Trade #{{ trade.id }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="" enctype="multipart/form-data" novalidate>
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row g-4">
+                            <!-- Trade Basics -->
+                            <div class="col-md-6">
+                                <h5 class="mb-3 text-primary">
+                                    <i class="fas fa-info-circle me-2"></i>Trade Basics
+                                </h5>
+                                
+                                <!-- Symbol -->
+                                <div class="mb-3">
+                                    {{ form.symbol.label(class="form-label") }}
+                                    {{ form.symbol(class="form-control") }}
+                                    {% if form.symbol.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {% for error in form.symbol.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">Examples: EUR/USD, GBP/JPY, XAU/USD (Gold), XAG/USD (Silver)</div>
+                                </div>
+
+                                <!-- Direction & Size -->
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.direction.label(class="form-label") }}
+                                            {{ form.direction(class="form-select") }}
+                                            {% if form.direction.errors %}
+                                                <div class="text-danger small mt-1">
+                                                    {% for error in form.direction.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.size.label(class="form-label") }}
+                                            {{ form.size(class="form-control") }}
+                                            {% if form.size.errors %}
+                                                <div class="text-danger small mt-1">
+                                                    {% for error in form.size.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                            <div class="form-text">Lot size (e.g., 1.0 for standard lot)</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Entry & Exit Prices -->
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.entry_price.label(class="form-label") }}
+                                            {{ form.entry_price(class="form-control", step="0.00001") }}
+                                            {% if form.entry_price.errors %}
+                                                <div class="text-danger small mt-1">
+                                                    {% for error in form.entry_price.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.exit_price.label(class="form-label") }}
+                                            {{ form.exit_price(class="form-control", step="0.00001") }}
+                                            {% if form.exit_price.errors %}
+                                                <div class="text-danger small mt-1">
+                                                    {% for error in form.exit_price.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                            <div class="form-text">Leave empty for open trades</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Timeframe & Strategy -->
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.timeframe.label(class="form-label") }}
+                                            {{ form.timeframe(class="form-select") }}
+                                            {% if form.timeframe.errors %}
+                                                <div class="text-danger small mt-1">
+                                                    {% for error in form.timeframe.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.strategy.label(class="form-label") }}
+                                            {{ form.strategy(class="form-control") }}
+                                            {% if form.strategy.errors %}
+                                                <div class="text-danger small mt-1">
+                                                    {% for error in form.strategy.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Timing & Psychology -->
+                            <div class="col-md-6">
+                                <h5 class="mb-3 text-primary">
+                                    <i class="fas fa-clock me-2"></i>Timing & Psychology
+                                </h5>
+                                
+                                <!-- Entry & Exit Times -->
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.entry_time.label(class="form-label") }}
+                                            {{ form.entry_time(class="form-control", type="datetime-local") }}
+                                            {% if form.entry_time.errors %}
+                                                <div class="text-danger small mt-1">
+                                                    {% for error in form.entry_time.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.exit_time.label(class="form-label") }}
+                                            {{ form.exit_time(class="form-control", type="datetime-local") }}
+                                            {% if form.exit_time.errors %}
+                                                <div class="text-danger small mt-1">
+                                                    {% for error in form.exit_time.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                            <div class="form-text">Leave empty for open trades</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Emotions & Rating -->
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.emotions.label(class="form-label") }}
+                                            {{ form.emotions(class="form-select") }}
+                                            {% if form.emotions.errors %}
+                                                <div class="text-danger small mt-1">
+                                                    {% for error in form.emotions.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.rating.label(class="form-label") }}
+                                            {{ form.rating(class="form-select") }}
+                                            {% if form.rating.errors %}
+                                                <div class="text-danger small mt-1">
+                                                    {% for error in form.rating.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Screenshots -->
+                                <div class="mb-3">
+                                    {{ form.images.label(class="form-label") }}
+                                    {{ form.images(class="form-control", accept=".jpg,.jpeg,.png,.gif,.webp") }}
+                                    <div class="form-text">
+                                        Upload additional chart screenshots (multiple files allowed). Max 5MB per image.
+                                    </div>
+                                    {% if form.images.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {% for error in form.images.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Current Images -->
+                                {% if trade.images.count() > 0 %}
+                                <div class="mb-3">
+                                    <label class="form-label">Current Screenshots</label>
+                                    <div class="row g-2">
+                                        {% for image in trade.images %}
+                                        <div class="col-4">
+                                            <div class="card">
+                                                <img src="{{ url_for('static', filename='uploads/' + image.filename) }}" 
+                                                     class="card-img-top" 
+                                                     alt="Trade screenshot"
+                                                     style="height: 80px; object-fit: cover;">
+                                                <div class="card-body text-center p-1">
+                                                    <small class="text-muted">{{ image.created_at.strftime('%m/%d') }}</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Notes & Analysis -->
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <h5 class="mb-3 text-primary">
+                                    <i class="fas fa-sticky-note me-2"></i>Analysis & Notes
+                                </h5>
+                                
+                                <div class="mb-3">
+                                    {{ form.notes.label(class="form-label") }}
+                                    {{ form.notes(class="form-control", rows=3) }}
+                                    {% if form.notes.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {% for error in form.notes.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-4">
+                                    {{ form.mistakes.label(class="form-label") }}
+                                    {{ form.mistakes(class="form-control", rows=2) }}
+                                    {% if form.mistakes.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {% for error in form.mistakes.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-between">
+                            <div>
+                                <a href="{{ url_for('trades.view_trade', trade_id=trade.id) }}" class="btn btn-secondary me-2">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </a>
+                                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                    <i class="fas fa-trash me-2"></i>Delete
+                                </button>
+                            </div>
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete trade #{{ trade.id }} ({{ trade.symbol }})?</p>
+                <p class="text-danger"><strong>This action cannot be undone!</strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('trades.delete_trade', trade_id=trade.id) }}" method="POST">
+                    <button type="submit" class="btn btn-danger">Delete Trade</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}My Trades - Forex Journal{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2">
+                <i class="fas fa-exchange-alt me-2"></i>My Trades
+            </h1>
+            <p class="text-muted">Manage and review your trading history</p>
+        </div>
+        <div class="col-auto">
+            <div class="btn-group">
+                <a href="{{ url_for('trades.new_trade') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>New Trade
+                </a>
+                <a href="{{ url_for('trades.export_trades') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-download me-2"></i>Export
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trades Table -->
+    <div class="card">
+        <div class="card-body">
+            {% if trades.items %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Direction</th>
+                            <th>Entry Price</th>
+                            <th>Exit Price</th>
+                            <th>Size</th>
+                            <th>P&L</th>
+                            <th>Status</th>
+                            <th>Entry Time</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for trade in trades.items %}
+                        <tr>
+                            <td>
+                                <strong>{{ trade.symbol }}</strong>
+                                {% if trade.timeframe %}
+                                <br><small class="text-muted">{{ trade.timeframe }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if trade.direction == 'BUY' else 'danger' }}">
+                                    {{ trade.direction }}
+                                </span>
+                            </td>
+                            <td>{{ "%.5f"|format(trade.entry_price) }}</td>
+                            <td>{{ "%.5f"|format(trade.exit_price) if trade.exit_price else '-' }}</td>
+                            <td>{{ "%.2f"|format(trade.size) }}</td>
+                            <td class="{{ 'profit-positive' if trade.pnl and trade.pnl > 0 else 'profit-negative' if trade.pnl and trade.pnl < 0 else '' }}">
+                                {% if trade.pnl %}
+                                    ${{ "%.2f"|format(trade.pnl) }}
+                                    {% if trade.pnl_percent %}
+                                    <br><small>({{ "%.2f"|format(trade.pnl_percent) }}%)</small>
+                                    {% endif %}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ 'warning' if trade.status == 'open' else 'secondary' }}">
+                                    {{ trade.status|title }}
+                                </span>
+                            </td>
+                            <td>
+                                {{ trade.entry_time.strftime('%Y-%m-%d') }}
+                                <br><small class="text-muted">{{ trade.entry_time.strftime('%H:%M') }}</small>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('trades.view_trade', trade_id=trade.id) }}" 
+                                   class="btn btn-sm btn-outline-primary" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+				<a href="{{ url_for('trades.edit_trade', trade_id=trade.id) }}"
+           class="btn btn-outline-warning" title="Edit Trade">
+            <i class="fas fa-edit"></i>
+        </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if trades.pages > 1 %}
+            <nav aria-label="Trade pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% for page_num in trades.iter_pages(left_edge=2, right_edge=2, left_current=2, right_current=2) %}
+                        {% if page_num %}
+                            <li class="page-item {% if trades.page == page_num %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('trades.index', page=page_num) }}">{{ page_num }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">…</span></li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-5">
+                <i class="fas fa-exchange-alt fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No trades yet</h4>
+                <p class="text-muted mb-4">Start tracking your trading performance by adding your first trade</p>
+                <a href="{{ url_for('trades.new_trade') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus me-2"></i>Add Your First Trade
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

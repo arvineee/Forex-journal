@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Forex Journal{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2">
+                <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+            </h1>
+            <p class="text-muted">Your trading performance overview</p>
+        </div>
+        <div class="col-auto">
+            <a href="{{ url_for('trades.new_trade') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>New Trade
+            </a>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3 col-sm-6">
+            <div class="card metric-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-muted mb-2">Total Trades</h6>
+                            <h3 class="mb-0">{{ metrics.total_trades }}</h3>
+                        </div>
+                        <div class="bg-primary bg-opacity-25 p-3 rounded">
+                            <i class="fas fa-exchange-alt text-primary fa-lg"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+            <div class="card metric-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-muted mb-2">Win Rate</h6>
+                            <h3 class="mb-0">{{ "%.1f"|format(metrics.win_rate) }}%</h3>
+                        </div>
+                        <div class="bg-success bg-opacity-25 p-3 rounded">
+                            <i class="fas fa-trophy text-success fa-lg"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+            <div class="card metric-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-muted mb-2">Total P&L</h6>
+                            <h3 class="mb-0 {{ 'profit-positive' if metrics.total_pnl > 0 else 'profit-negative' if metrics.total_pnl < 0 else '' }}">
+                                ${{ "%.2f"|format(metrics.total_pnl) }}
+                            </h3>
+                        </div>
+                        <div class="bg-info bg-opacity-25 p-3 rounded">
+                            <i class="fas fa-chart-line text-info fa-lg"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+            <div class="card metric-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-muted mb-2">Profit Factor</h6>
+                            <h3 class="mb-0">{{ "%.2f"|format(metrics.profit_factor) if metrics.profit_factor != float('inf') else '∞' }}</h3>
+                        </div>
+                        <div class="bg-warning bg-opacity-25 p-3 rounded">
+                            <i class="fas fa-balance-scale text-warning fa-lg"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts and Recent Trades -->
+    <div class="row g-4">
+        <!-- Equity Curve -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-line me-2"></i>Equity Curve
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="equity-chart-container">
+                        <canvas id="equityChart" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Trades & Quick Stats -->
+        <div class="col-lg-4">
+            <!-- Recent Trades -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-clock me-2"></i>Recent Trades
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_trades %}
+                    <div class="list-group list-group-flush">
+                        {% for trade in recent_trades %}
+                        <a href="{{ url_for('trades.view_trade', trade_id=trade.id) }}" 
+                           class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ trade.symbol }}</h6>
+                                    <small class="text-muted">
+                                        <span class="badge bg-{{ 'success' if trade.direction == 'BUY' else 'danger' }}">
+                                            {{ trade.direction }}
+                                        </span>
+                                        at {{ "%.5f"|format(trade.entry_price) }}
+                                    </small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="{{ 'profit-positive' if trade.pnl and trade.pnl > 0 else 'profit-negative' if trade.pnl and trade.pnl < 0 else '' }}">
+                                        {{ "$%.2f"|format(trade.pnl) if trade.pnl else '-' }}
+                                    </span>
+                                    <br>
+                                    <small class="text-muted">{{ trade.entry_time.strftime('%m/%d') }}</small>
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
+                        <p class="text-muted mb-0">No trades yet</p>
+                        <a href="{{ url_for('trades.new_trade') }}" class="btn btn-sm btn-primary mt-2">
+                            Add Your First Trade
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>Performance
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <h4 class="{{ 'text-success' if metrics.largest_win > 0 else 'text-muted' }}">
+                                ${{ "%.2f"|format(metrics.largest_win) }}
+                            </h4>
+                            <small class="text-muted">Largest Win</small>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <h4 class="{{ 'text-danger' if metrics.largest_loss < 0 else 'text-muted' }}">
+                                ${{ "%.2f"|format(metrics.largest_loss) }}
+                            </h4>
+                            <small class="text-muted">Largest Loss</small>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-info">{{ metrics.winning_trades }}</h4>
+                            <small class="text-muted">Winning Trades</small>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-warning">{{ metrics.losing_trades }}</h4>
+                            <small class="text-muted">Losing Trades</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Equity Curve Chart
+const equityData = {{ equity_data | tojson }};
+if (equityData.length > 0) {
+    const ctx = document.getElementById('equityChart').getContext('2d');
+    const dates = equityData.map(item => new Date(item.date).toLocaleDateString());
+    const equity = equityData.map(item => item.equity);
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [{
+                label: 'Equity',
+                data: equity,
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    },
+                    ticks: {
+                        color: '#ccc'
+                    }
+                },
+                y: {
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    },
+                    ticks: {
+                        color: '#ccc',
+                        callback: function(value) {
+                            return '$' + value;
+                        }
+                    }
+                }
+            }
+        }
+    });
+} else {
+    document.getElementById('equityChart').parentElement.innerHTML = `
+        <div class="text-center py-5">
+            <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+            <p class="text-muted">No closed trades yet to show equity curve</p>
+            <a href="{{ url_for('trades.new_trade') }}" class="btn btn-primary">Add Your First Trade</a>
+        </div>
+    `;
+}
+</script>
+{% endblock %}

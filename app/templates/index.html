@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome - Forex Journal{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 text-center">
+            <!-- Hero Section -->
+            <div class="hero-section mb-5">
+                <i class="fas fa-chart-line display-1 text-primary mb-4"></i>
+                <h1 class="display-4 fw-bold mb-3">Forex Trading Journal</h1>
+                <p class="lead text-muted mb-4">
+                    Track, analyze, and improve your trading performance with intelligent insights
+                </p>
+                
+                {% if not current_user.is_authenticated %}
+                <div class="d-grid gap-2 d-md-flex justify-content-center">
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-4 me-md-2">
+                        <i class="fas fa-rocket me-2"></i>Start Journaling
+                    </a>
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary btn-lg px-4">
+                        <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                    </a>
+                </div>
+                {% else %}
+                <div class="d-grid gap-2 d-md-flex justify-content-center">
+                    <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary btn-lg px-4 me-md-2">
+                        <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
+                    </a>
+                    <a href="{{ url_for('trades.new_trade') }}" class="btn btn-success btn-lg px-4">
+                        <i class="fas fa-plus me-2"></i>New Trade
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Features Grid -->
+            <div class="row g-4 mt-5">
+                <div class="col-md-4">
+                    <div class="card metric-card h-100">
+                        <div class="card-body text-center p-4">
+                            <i class="fas fa-camera fa-2x text-primary mb-3"></i>
+                            <h5>Chart Screenshots</h5>
+                            <p class="text-muted">Upload multiple chart images per trade with annotation tools</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card metric-card h-100">
+                        <div class="card-body text-center p-4">
+                            <i class="fas fa-brain fa-2x text-info mb-3"></i>
+                            <h5>Emotional Tracking</h5>
+                            <p class="text-muted">Monitor your emotional state and identify patterns</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card metric-card h-100">
+                        <div class="card-body text-center p-4">
+                            <i class="fas fa-chart-bar fa-2x text-success mb-3"></i>
+                            <h5>Smart Analytics</h5>
+                            <p class="text-muted">AI-powered insights and performance metrics</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile Optimized -->
+            <div class="row mt-5">
+                <div class="col-12">
+                    <div class="alert alert-info text-center">
+                        <i class="fas fa-mobile-alt me-2"></i>
+                        <strong>Mobile-Friendly:</strong> Perfect for trading on the go with Termux
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
