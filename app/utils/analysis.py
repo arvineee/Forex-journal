@@ -174,3 +174,105 @@ class TradeAnalyzer:
             data['avg_pnl'] = data['total_pnl'] / data['trades'] if data['trades'] > 0 else 0
             
         return symbol_data
+
+    @staticmethod
+    def calculate_account_metrics(trades, account_balances):
+        """Calculate performance metrics including account balance"""
+        trade_metrics = TradeAnalyzer.calculate_metrics(trades)
+    
+        if not account_balances:
+            trade_metrics['current_balance'] = 0
+            trade_metrics['total_deposits'] = 0
+            trade_metrics['net_profit'] = trade_metrics['total_pnl']
+            return trade_metrics
+    
+        current_balance = account_balances[-1].balance
+        initial_balance = account_balances[0].balance
+    
+        # Calculate net profit (current balance minus initial deposits)
+        # This is a simplified calculation - you might want to track deposits/withdrawals separately
+        net_profit = current_balance - initial_balance + trade_metrics['total_pnl']
+    
+        trade_metrics.update({
+            'current_balance': current_balance,
+            'initial_balance': initial_balance,
+            'net_profit': net_profit,
+            'total_return': ((current_balance - initial_balance) / initial_balance * 100) if initial_balance > 0 else 0
+        })
+    
+        return trade_metrics
+
+    @staticmethod
+    def analyze_by_timeframe(trades):
+        """Analyze performance by different time periods"""
+        if not trades:
+            return {}
+
+        time_data = {
+        'by_hour': {},
+        'by_day': {},
+        'by_month': {}
+        }
+
+        for trade in trades:
+            if trade.entry_time:
+                # By hour
+                hour = trade.entry_time.hour
+                if hour not in time_data['by_hour']:
+                    time_data['by_hour'][hour] = {'trades': 0, 'total_pnl': 0, 'winning': 0}
+                    time_data['by_hour'][hour]['trades'] += 1
+                    time_data['by_hour'][hour]['total_pnl'] += trade.pnl or 0
+                    if trade.pnl and trade.pnl > 0:
+                        time_data['by_hour'][hour]['winning'] += 1
+
+                # By day of week
+                day = trade.entry_time.strftime('%A')
+                if day not in time_data['by_day']:
+                    time_data['by_day'][day] = {'trades': 0, 'total_pnl': 0, 'winning': 0}
+                    time_data['by_day'][day]['trades'] += 1
+                    time_data['by_day'][day]['total_pnl'] += trade.pnl or 0
+                    if trade.pnl and trade.pnl > 0:
+                        time_data['by_day'][day]['winning'] += 1
+        return time_data
+
+    @staticmethod
+    def calculate_risk_metrics(trades, account_balances):
+        """Calculate risk management metrics"""
+        if not trades:
+            return {}
+
+        # Average risk per trade
+        risk_per_trade = []
+        for trade in trades:
+            if trade.pnl is not None:
+                # Calculate risk as percentage of account (simplified)
+                risk_per_trade.append(abs(trade.pnl) / 1000)  # Adjust based on your risk model
+
+        # Win streak and loss streak
+        current_streak = 0
+        max_win_streak = 0
+        max_loss_streak = 0
+        last_win = None
+
+        for trade in sorted(trades, key=lambda x: x.entry_time):
+            if trade.pnl is not None:
+                is_win = trade.pnl > 0
+                if last_win is None or is_win == last_win:
+                    current_streak += 1
+                else:
+                    current_streak = 1
+
+                if is_win:
+                    max_win_streak = max(max_win_streak, current_streak)
+                else:
+                    max_loss_streak = max(max_loss_streak, current_streak)
+
+                last_win = is_win
+
+        return {
+        'avg_risk_per_trade': sum(risk_per_trade) / len(risk_per_trade) if risk_per_trade else 0,
+        'max_win_streak': max_win_streak,
+        'max_loss_streak': max_loss_streak,
+        'risk_reward_ratio': 0,  # Calculate based on your strategy
+        'expectancy': 0  # (Win% * Avg Win) - (Loss% * Avg Loss)
+    }

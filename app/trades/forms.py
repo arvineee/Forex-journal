@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, MultipleFileField
-from wtforms import StringField, FloatField, DateTimeField, TextAreaField, SelectField, IntegerField, SubmitField
+from wtforms import StringField, FloatField, DateTimeField, TextAreaField, SelectField, IntegerField, SubmitField,DateField,BooleanField
 from wtforms.validators import DataRequired, Optional, NumberRange
 from datetime import datetime
 
@@ -51,3 +51,31 @@ class TradeForm(FlaskForm):
     ], coerce=int, validators=[Optional()])
     images = MultipleFileField('Chart Screenshots', validators=[Optional()])
     submit = SubmitField('Save Trade')
+
+
+class ExportForm(FlaskForm):
+    format = SelectField('Format', choices=[
+        ('csv', 'CSV (Excel Compatible)'),
+        ('excel', 'Microsoft Excel (.xlsx)'),
+        ('json', 'JSON (Structured Data)'),
+        ('pdf', 'PDF Report')
+    ], validators=[DataRequired()])
+    
+    date_range = SelectField('Time Period', choices=[
+        ('all', 'All Trades'),
+        ('today', 'Today'),
+        ('week', 'Last 7 Days'),
+        ('month', 'Last 30 Days'),
+        ('quarter', 'Last 90 Days'),
+        ('year', 'Last 365 Days'),
+        ('custom', 'Custom Range')
+    ], validators=[DataRequired()])
+    
+    start_date = DateField('Start Date', validators=[Optional()])
+    end_date = DateField('End Date', validators=[Optional()])
+    
+    include_images = BooleanField('Include Image Information')
+    include_annotations = BooleanField('Include Annotation Data')
+    include_summary = BooleanField('Include Summary Statistics')
+    
+    submit = SubmitField('Generate Export')

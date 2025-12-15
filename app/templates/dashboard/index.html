@@ -36,6 +36,29 @@
                 </div>
             </div>
         </div>
+<div class="col-md-3 col-sm-6">
+    <div class="card metric-card">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="card-title text-muted mb-2">Account Balance</h6>
+                    <h3 class="mb-0">${{ "%.2f"|format(current_balance) }}</h3>
+                </div>
+                <div class="bg-success bg-opacity-25 p-3 rounded">
+                    <i class="fas fa-wallet text-success fa-lg"></i>
+                </div>
+            </div>
+            <div class="mt-2">
+                <a href="{{ url_for('account.balance_history') }}" class="btn btn-sm btn-outline-primary">
+                    Manage
+                </a>
+                <a href="{{ url_for('account.add_balance') }}" class="btn btn-sm btn-outline-success">
+                    <i class="fas fa-plus"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 
         <div class="col-md-3 col-sm-6">
             <div class="card metric-card">
@@ -88,6 +111,93 @@
         </div>
     </div>
 
+    
+
+<!-- Performance Widgets -->
+<div class="row g-4 mb-4">
+    <!-- Win/Loss Distribution -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>Win/Loss Distribution
+                </h6>
+            </div>
+            <div class="card-body">
+                <canvas id="winLossChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance by Symbol -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-coins me-2"></i>Top Performing Symbols
+                </h6>
+            </div>
+            <div class="card-body">
+                <canvas id="symbolPerformanceChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Trading Hours Heatmap -->
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-clock me-2"></i>Trading Hours Performance
+                </h6>
+            </div>
+            <div class="card-body">
+                <div id="tradingHoursHeatmap"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Risk Metrics -->
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Risk Metrics</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 mb-3">
+                        <div class="metric-small">
+                            <div class="h5 text-info">{{ risk_metrics.max_win_streak }}</div>
+                            <small class="text-muted">Max Win Streak</small>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="metric-small">
+                            <div class="h5 text-warning">{{ risk_metrics.max_loss_streak }}</div>
+                            <small class="text-muted">Max Loss Streak</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="metric-small">
+                            <div class="h5 text-success">{{ "%.2f"|format(risk_metrics.avg_risk_per_trade) }}%</div>
+                            <small class="text-muted">Avg Risk/Trade</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="metric-small">
+                            <div class="h5 text-primary">{{ "%.2f"|format(risk_metrics.expectancy) }}</div>
+                            <small class="text-muted">Expectancy</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
     <!-- Charts and Recent Trades -->
     <div class="row g-4">
         <!-- Equity Curve -->

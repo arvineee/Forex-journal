@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Trading Assistant Chat - Forex Journal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .chat-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .chat-input-container {
+            border-top: 1px solid #dee2e6;
+            padding: 15px;
+            background: white;
+            border-radius: 0 0 10px 10px;
+        }
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+        }
+        .message-user {
+            justify-content: flex-end;
+        }
+        .message-bot {
+            justify-content: flex-start;
+        }
+        .message-content {
+            max-width: 70%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+        .user-message {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+        .bot-message {
+            background: #f1f3f5;
+            color: #212529;
+            border-bottom-left-radius: 5px;
+        }
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .suggestion-btn {
+            background: #e9ecef;
+            border: 1px solid #dee2e6;
+            border-radius: 20px;
+            padding: 5px 12px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .suggestion-btn:hover {
+            background: #dee2e6;
+            transform: translateY(-1px);
+        }
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 15px;
+            background: #f1f3f5;
+            border-radius: 18px;
+            border-bottom-left-radius: 5px;
+        }
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            margin: 0 2px;
+            background: #6c757d;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
+        }
+        .message-time {
+            font-size: 0.7rem;
+            color: #6c757d;
+            margin-top: 5px;
+            text-align: right;
+        }
+        .bot-message .message-time {
+            text-align: left;
+        }
+        .insight-tag {
+            font-size: 0.7rem;
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-3">
+        <div class="chat-container">
+            <!-- Chat Header -->
+            <div class="chat-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0"><i class="bi bi-robot"></i> AI Trading Assistant</h4>
+                        <small class="opacity-75">Ask me anything about your trading performance</small>
+                    </div>
+                    <div>
+                        <button onclick="window.location.href='/ai/dashboard'" class="btn btn-outline-light btn-sm me-2">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </button>
+                        <button onclick="clearChat()" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-trash"></i> Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Messages -->
+            <div class="chat-messages" id="chatMessages">
+                <!-- Messages will be loaded here -->
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="text-muted">Starting conversation...</p>
+                </div>
+            </div>
+
+            <!-- Quick Suggestions -->
+            <div class="px-3 pt-2 border-top" id="quickSuggestions" style="display: none;">
+                <small class="text-muted mb-2 d-block">Quick questions:</small>
+                <div class="suggestions" id="suggestionsContainer">
+                    <!-- Suggestions will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Chat Input -->
+            <div class="chat-input-container">
+                <div class="input-group">
+                    <input type="text" 
+                           class="form-control" 
+                           id="messageInput" 
+                           placeholder="Ask about your trades, emotions, patterns, or recommendations..."
+                           onkeypress="handleKeyPress(event)">
+                    <button class="btn btn-primary" type="button" id="sendButton" onclick="sendMessage()">
+                        <i class="bi bi-send"></i> Send
+                    </button>
+                    <button class="btn btn-outline-secondary" type="button" onclick="loadSuggestions()">
+                        <i class="bi bi-lightbulb"></i> Ideas
+                    </button>
+                </div>
+                <div class="mt-2 text-center">
+                    <small class="text-muted">
+                        Try: "How am I doing?", "Analyze my emotions", or "Give me recommendations"
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let conversationHistory = [];
+        
+        // Initialize chat
+        document.addEventListener('DOMContentLoaded', function() {
+            loadChatHistory();
+            startConversation();
+        });
+        
+        function startConversation() {
+            // Send initial greeting
+            setTimeout(() => {
+                simulateTyping(() => {
+                    addBotMessage({
+                        text: "Hello! I'm your Forex Trading Assistant. I can analyze your trades, emotions, patterns, and give personalized recommendations. How can I help you today?",
+                        suggestions: [
+                            "How am I doing overall?",
+                            "What patterns have you found?",
+                            "Give me some recommendations",
+                            "Analyze my recent trades"
+                        ]
+                    });
+                });
+            }, 1000);
+        }
+        
+        function loadChatHistory() {
+            fetch('/ai/chat/history')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.history.length > 0) {
+                        conversationHistory = data.history;
+                        displayHistory();
+                    }
+                });
+        }
+        
+        function displayHistory() {
+            const container = document.getElementById('chatMessages');
+            container.innerHTML = '';
+            
+            conversationHistory.forEach(msg => {
+                if (msg.role === 'user') {
+                    addUserMessage(msg.content, msg.timestamp);
+                } else if (msg.role === 'assistant') {
+                    addBotMessage({
+                        text: msg.content,
+                        suggestions: []
+                    }, msg.timestamp);
+                }
+            });
+            
+            scrollToBottom();
+        }
+        
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            addUserMessage(message);
+            input.value = '';
+            
+            // Show typing indicator
+            showTypingIndicator();
+            
+            // Send to server
+            fetch('/ai/chat/message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideTypingIndicator();
+                
+                if (data.success) {
+                    // Add bot response
+                    addBotMessage(data.response);
+                    
+                    // Update suggestions if available
+                    if (data.response.suggestions && data.response.suggestions.length > 0) {
+                        updateSuggestions(data.response.suggestions);
+                    }
+                    
+                    // Update conversation history
+                    if (data.history) {
+                        conversationHistory = data.history;
+                    }
+                } else {
+                    addBotMessage({
+                        text: "Sorry, I encountered an error. Please try again.",
+                        suggestions: ["Try again", "Go to dashboard"]
+                    });
+                }
+            })
+            .catch(error => {
+                hideTypingIndicator();
+                addBotMessage({
+                    text: "Network error. Please check your connection.",
+                    suggestions: ["Try again"]
+                });
+            });
+        }
+        
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+        
+        function addUserMessage(message, timestamp = null) {
+            const container = document.getElementById('chatMessages');
+            const time = timestamp ? new Date(timestamp) : new Date();
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message message-user';
+            messageDiv.innerHTML = `
+                <div class="message-content user-message">
+                    ${escapeHtml(message)}
+                    <div class="message-time">${formatTime(time)}</div>
+                </div>
+            `;
+            
+            container.appendChild(messageDiv);
+            scrollToBottom();
+        }
+        
+        function addBotMessage(response, timestamp = null) {
+            const container = document.getElementById('chatMessages');
+            const time = timestamp ? new Date(timestamp) : new Date();
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message message-bot';
+            messageDiv.innerHTML = `
+                <div class="message-content bot-message">
+                    ${formatBotMessage(response.text)}
+                    <div class="message-time">${formatTime(time)}</div>
+                </div>
+            `;
+            
+            container.appendChild(messageDiv);
+            
+            // Add suggestions if available
+            if (response.suggestions && response.suggestions.length > 0) {
+                updateSuggestions(response.suggestions);
+            }
+            
+            scrollToBottom();
+        }
+        
+        function formatBotMessage(text) {
+            // Convert markdown-like formatting
+            return text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/•/g, '•')
+                .replace(/\n/g, '<br>')
+                .replace(/✅/g, '<span class="text-success">✅</span>')
+                .replace(/⚠️/g, '<span class="text-warning">⚠️</span>')
+                .replace(/🎭/g, '🎭')
+                .replace(/📊/g, '📊')
+                .replace(/🔍/g, '🔍')
+                .replace(/💡/g, '💡')
+                .replace(/📈/g, '📈')
+                .replace(/🕒/g, '🕒')
+                .replace(/🛡️/g, '🛡️')
+                .replace(/📝/g, '📝')
+                .replace(/🎯/g, '🎯');
+        }
+        
+        function showTypingIndicator() {
+            const container = document.getElementById('chatMessages');
+            
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message message-bot';
+            typingDiv.id = 'typingIndicator';
+            typingDiv.innerHTML = `
+                <div class="typing-indicator">
+                    <span class="typing-dot"></span>
+                    <span class="typing-dot"></span>
+                    <span class="typing-dot"></span>
+                </div>
+            `;
+            
+            container.appendChild(typingDiv);
+            scrollToBottom();
+        }
+        
+        function hideTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+        
+        function simulateTyping(callback) {
+            showTypingIndicator();
+            setTimeout(() => {
+                hideTypingIndicator();
+                callback();
+            }, 1000 + Math.random() * 1000);
+        }
+        
+        function updateSuggestions(suggestions) {
+            const container = document.getElementById('suggestionsContainer');
+            const parent = document.getElementById('quickSuggestions');
+            
+            container.innerHTML = '';
+            parent.style.display = 'block';
+            
+            suggestions.forEach(suggestion => {
+                const btn = document.createElement('button');
+                btn.className = 'suggestion-btn';
+                btn.textContent = suggestion;
+                btn.onclick = () => {
+                    document.getElementById('messageInput').value = suggestion;
+                    sendMessage();
+                };
+                container.appendChild(btn);
+            });
+        }
+        
+        function loadSuggestions() {
+            fetch('/ai/chat/suggestions')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateSuggestions(data.suggestions);
+                    }
+                });
+        }
+        
+        function clearChat() {
+            if (confirm('Clear all chat history?')) {
+                fetch('/ai/chat/clear', {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        conversationHistory = [];
+                        document.getElementById('chatMessages').innerHTML = '';
+                        document.getElementById('quickSuggestions').style.display = 'none';
+                        startConversation();
+                    }
+                });
+            }
+        }
+        
+        function scrollToBottom() {
+            const container = document.getElementById('chatMessages');
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        function formatTime(date) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+
+{% block title %}Advanced Export - Forex Journal{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-file-export me-2"></i>Advanced Trade Export
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('trades.advanced_export') }}">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row g-4">
+                            <!-- Export Format -->
+                            <div class="col-md-6">
+                                <h5 class="mb-3 text-primary">
+                                    <i class="fas fa-file me-2"></i>Export Format
+                                </h5>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Format</label>
+                                    <select name="format" class="form-select" required>
+                                        <option value="csv">CSV (Excel Compatible)</option>
+                                        <option value="excel">Microsoft Excel (.xlsx)</option>
+                                        <option value="json">JSON (Structured Data)</option>
+                                        <option value="pdf">PDF Report</option>
+                                    </select>
+                                    <div class="form-text">
+                                        Choose the format for your export
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Date Range -->
+                            <div class="col-md-6">
+                                <h5 class="mb-3 text-primary">
+                                    <i class="fas fa-calendar me-2"></i>Date Range
+                                </h5>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Time Period</label>
+                                    <select name="date_range" class="form-select" id="dateRangeSelect">
+                                        <option value="all">All Trades</option>
+                                        <option value="today">Today</option>
+                                        <option value="week">Last 7 Days</option>
+                                        <option value="month">Last 30 Days</option>
+                                        <option value="quarter">Last 90 Days</option>
+                                        <option value="year">Last 365 Days</option>
+                                        <option value="custom">Custom Range</option>
+                                    </select>
+                                </div>
+
+                                <!-- Custom Date Range (hidden by default) -->
+                                <div id="customDateRange" class="row g-2" style="display: none;">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Start Date</label>
+                                        <input type="date" name="start_date" class="form-control">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">End Date</label>
+                                        <input type="date" name="end_date" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Additional Options -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h5 class="mb-3 text-primary">
+                                    <i class="fas fa-cog me-2"></i>Additional Options
+                                </h5>
+                                
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-check form-switch mb-3">
+                                            <input class="form-check-input" type="checkbox" name="include_images" id="includeImages">
+                                            <label class="form-check-label" for="includeImages">
+                                                Include Image Information
+                                            </label>
+                                            <div class="form-text">
+                                                Add image filenames and counts to export
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check form-switch mb-3">
+                                            <input class="form-check-input" type="checkbox" name="include_annotations" id="includeAnnotations">
+                                            <label class="form-check-label" for="includeAnnotations">
+                                                Include Annotation Data
+                                            </label>
+                                            <div class="form-text">
+                                                Export annotation information
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check form-switch mb-3">
+                                            <input class="form-check-input" type="checkbox" name="include_summary" id="includeSummary" checked>
+                                            <label class="form-check-label" for="includeSummary">
+                                                Include Summary Statistics
+                                            </label>
+                                            <div class="form-text">
+                                                Add performance summary (Excel/PDF only)
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Format Specific Information -->
+                        <div class="alert alert-info mt-4">
+                            <h6><i class="fas fa-info-circle me-2"></i>Export Information</h6>
+                            <div id="formatInfo">
+                                <strong>CSV:</strong> Compatible with Excel, Google Sheets, and most spreadsheet applications.<br>
+                                <strong>Excel:</strong> Native Excel format with multiple sheets and formatting.<br>
+                                <strong>JSON:</strong> Structured data format for developers and analysis tools.<br>
+                                <strong>PDF:</strong> Professional report format for printing and sharing.
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="{{ url_for('trades.index') }}" class="btn btn-secondary me-md-2">
+                                <i class="fas fa-arrow-left me-1"></i>Back to Trades
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-download me-1"></i>Generate Export
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Quick Export Buttons -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt me-2"></i>Quick Exports
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3 col-6 mb-3">
+                            <a href="{{ url_for('trades.export_trades') }}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-file-csv me-1"></i>Quick CSV
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <form method="POST" action="{{ url_for('trades.advanced_export') }}" class="d-inline w-100">
+                                <input type="hidden" name="format" value="excel">
+                                <input type="hidden" name="date_range" value="month">
+                                <button type="submit" class="btn btn-outline-success w-100">
+                                    <i class="fas fa-file-excel me-1"></i>Monthly Excel
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <form method="POST" action="{{ url_for('trades.advanced_export') }}" class="d-inline w-100">
+                                <input type="hidden" name="format" value="pdf">
+                                <input type="hidden" name="date_range" value="all">
+                                <button type="submit" class="btn btn-outline-danger w-100">
+                                    <i class="fas fa-file-pdf me-1"></i>Full PDF Report
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <form method="POST" action="{{ url_for('trades.advanced_export') }}" class="d-inline w-100">
+                                <input type="hidden" name="format" value="json">
+                                <input type="hidden" name="date_range" value="all">
+                                <input type="hidden" name="include_images" value="on">
+                                <button type="submit" class="btn btn-outline-warning w-100">
+                                    <i class="fas fa-code me-1"></i>JSON Backup
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Show/hide custom date range
+document.getElementById('dateRangeSelect').addEventListener('change', function() {
+    const customRange = document.getElementById('customDateRange');
+    if (this.value === 'custom') {
+        customRange.style.display = 'flex';
+    } else {
+        customRange.style.display = 'none';
+    }
+});
+
+// Update format information
+document.querySelector('select[name="format"]').addEventListener('change', function() {
+    const infoDiv = document.getElementById('formatInfo');
+    const format = this.value;
+    
+    const infoTexts = {
+        'csv': '<strong>CSV:</strong> Compatible with Excel, Google Sheets, and most spreadsheet applications. Best for data analysis.',
+        'excel': '<strong>Excel:</strong> Native Excel format with multiple sheets, formatting, and charts. Best for reporting.',
+        'json': '<strong>JSON:</strong> Structured data format perfect for developers, APIs, and custom analysis tools.',
+        'pdf': '<strong>PDF:</strong> Professional report format ideal for printing, sharing, and presentations.'
+    };
+    
+    infoDiv.innerHTML = infoTexts[format] || infoTexts.csv;
+});
+
+// Set default dates for custom range
+function setDefaultDates() {
+    const today = new Date().toISOString().split('T')[0];
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+    const oneMonthAgoStr = oneMonthAgo.toISOString().split('T')[0];
+    
+    document.querySelector('input[name="start_date"]').value = oneMonthAgoStr;
+    document.querySelector('input[name="end_date"]').value = today;
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    setDefaultDates();
+});
+</script>
+
+<style>
+.form-switch .form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.card {
+    border: 1px solid #444;
+    border-radius: 10px;
+}
+
+.card-header {
+    background: linear-gradient(135deg, #2d2d2d 0%, #3d3d3d 100%);
+    border-bottom: 1px solid #444;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    border: none;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+    border: 1px solid #b6d4fe;
+    color: #055160;
+}
+</style>
+{% endblock %}

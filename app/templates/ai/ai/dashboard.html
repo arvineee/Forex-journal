@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Insights - Forex Journal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <style>
+        .insight-card {
+            border-left: 4px solid #0d6efd;
+            margin-bottom: 1rem;
+        }
+        .insight-emotion {
+            border-left-color: #dc3545;
+        }
+        .insight-pattern {
+            border-left-color: #198754;
+        }
+        .insight-recommendation {
+            border-left-color: #ffc107;
+        }
+        .insight-risk {
+            border-left-color: #6f42c1;
+        }
+        .confidence-bar {
+            height: 4px;
+            background: #e9ecef;
+            border-radius: 2px;
+            margin-top: 8px;
+        }
+        .confidence-fill {
+            height: 100%;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <div class="row mb-4">
+            <div class="col">
+                <h1><i class="bi bi-robot"></i> AI Trading Assistant</h1>
+                <p class="text-muted">Learning from your trading patterns to provide personalized insights</p>
+            </div>
+            <div class="col-auto">
+                <button id="analyzeBtn" class="btn btn-primary">
+                    <i class="bi bi-lightning-charge"></i> Analyze My Trades
+                </button>
+    <!-- Add Chatbot Button -->
+    <button onclick="window.location.href='/ai/chat'" class="btn btn-success mt-3">
+        <i class="bi bi-chat-dots"></i> Chat with AI Assistant
+    </button>
+            </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">Total Insights</h6>
+                        <h3 class="card-title">{{ insights.values()|map('length')|sum }}</h3>
+                        <p class="card-text">AI-generated patterns</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">Emotion Analysis</h6>
+                        <h3 class="card-title">{{ insights.emotion|length }}</h3>
+                        <p class="card-text">Emotional impact insights</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">Patterns Found</h6>
+                        <h3 class="card-title">{{ insights.patterns|length }}</h3>
+                        <p class="card-text">Trading behavior patterns</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">Recommendations</h6>
+                        <h3 class="card-title">{{ insights.recommendations|length }}</h3>
+                        <p class="card-text">Personalized suggestions</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Insights Grid -->
+        <div class="row">
+            <!-- Emotional Insights -->
+            <div class="col-lg-6 mb-4">
+                <div class="card">
+                    <div class="card-header bg-danger bg-opacity-10">
+                        <h5 class="mb-0"><i class="bi bi-emoji-frown"></i> Emotional Impact</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for insight in insights.emotion %}
+                        <div class="insight-card insight-emotion p-3 mb-2 bg-light rounded">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>{{ insight.value }}</strong>
+                                    {% if insight.recommendation %}
+                                    <p class="mb-0 mt-1 text-muted"><small>{{ insight.recommendation }}</small></p>
+                                    {% endif %}
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
+                                            data-bs-toggle="dropdown">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#" onclick="feedbackInsight({{ insight.id }}, 'agree')">
+                                            <i class="bi bi-check-circle"></i> Agree
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="feedbackInsight({{ insight.id }}, 'disagree')">
+                                            <i class="bi bi-x-circle"></i> Disagree
+                                        </a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="confidence-bar">
+                                <div class="confidence-fill bg-danger" style="width: {{ insight.confidence * 100 }}%"></div>
+                            </div>
+                            <small class="text-muted">Confidence: {{ (insight.confidence * 100)|int }}%</small>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-emoji-neutral display-1 text-muted"></i>
+                            <p class="mt-2">Record more trades with emotions to unlock insights</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recommendations -->
+            <div class="col-lg-6 mb-4">
+                <div class="card">
+                    <div class="card-header bg-warning bg-opacity-10">
+                        <h5 class="mb-0"><i class="bi bi-lightbulb"></i> Recommendations</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for insight in insights.recommendations %}
+                        <div class="insight-card insight-recommendation p-3 mb-2 bg-light rounded">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="bi bi-lightbulb text-warning"></i>
+                                </div>
+                                <div>
+                                    <strong>{{ insight.value }}</strong>
+                                    {% if insight.recommendation %}
+                                    <p class="mb-0 mt-1">{{ insight.recommendation }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="confidence-bar">
+                                <div class="confidence-fill bg-warning" style="width: {{ insight.confidence * 100 }}%"></div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-lightbulb display-1 text-muted"></i>
+                            <p class="mt-2">Continue trading to receive personalized recommendations</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Patterns -->
+            <div class="col-lg-6 mb-4">
+                <div class="card">
+                    <div class="card-header bg-success bg-opacity-10">
+                        <h5 class="mb-0"><i class="bi bi-graph-up"></i> Trading Patterns</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for insight in insights.patterns %}
+                        <div class="insight-card insight-pattern p-3 mb-2 bg-light rounded">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <strong>{{ insight.value }}</strong>
+                                    <p class="mb-0 mt-1 text-muted"><small>Detected {{ insight.last_updated|datetimeformat }}</small></p>
+                                </div>
+                            </div>
+                            <div class="confidence-bar">
+                                <div class="confidence-fill bg-success" style="width: {{ insight.confidence * 100 }}%"></div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-graph-up display-1 text-muted"></i>
+                            <p class="mt-2">Patterns will emerge as you record more trades</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Risk Analysis -->
+            <div class="col-lg-6 mb-4">
+                <div class="card">
+                    <div class="card-header bg-purple bg-opacity-10">
+                        <h5 class="mb-0"><i class="bi bi-shield-exclamation"></i> Risk Analysis</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for insight in insights.risk %}
+                        <div class="insight-card insight-risk p-3 mb-2 bg-light rounded">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="bi bi-exclamation-triangle text-purple"></i>
+                                </div>
+                                <div>
+                                    <strong>{{ insight.value }}</strong>
+                                    {% if insight.recommendation %}
+                                    <p class="mb-0 mt-1 text-danger"><small>{{ insight.recommendation }}</small></p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="confidence-bar">
+                                <div class="confidence-fill bg-purple" style="width: {{ insight.confidence * 100 }}%"></div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-shield-check display-1 text-muted"></i>
+                            <p class="mt-2">Risk analysis available after 10+ trades</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Learning Logs -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-clock-history"></i> Recent Learning Sessions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Event</th>
+                                        <th>Insights Learned</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for log in recent_logs %}
+                                    <tr>
+                                        <td>{{ log.created_at|datetimeformat }}</td>
+                                        <td>
+                                            {% if log.event_type == 'trade_added' %}
+                                                <span class="badge bg-primary">New Trade</span>
+                                            {% elif log.event_type == 'ai_analysis_completed' %}
+                                                <span class="badge bg-success">AI Analysis</span>
+                                            {% else %}
+                                                {{ log.event_type }}
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if log.learned_insights %}
+                                                {{ log.learned_insights|length }} insights
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="3" class="text-center py-3">
+                                            No learning sessions yet
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('analyzeBtn').addEventListener('click', function() {
+            this.innerHTML = '<i class="bi bi-hourglass-split"></i> Analyzing...';
+            this.disabled = true;
+            
+            fetch('/ai/analyze')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        location.reload();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Analysis failed');
+                })
+                .finally(() => {
+                    this.innerHTML = '<i class="bi bi-lightning-charge"></i> Analyze My Trades';
+                    this.disabled = false;
+                });
+        });
+        
+        function feedbackInsight(insightId, feedback) {
+            fetch(`/ai/insight/${insightId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    confidence_feedback: feedback
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Thank you for your feedback!');
+                    location.reload();
+                }
+            });
+        }
+    </script>
+</body>
+</html>

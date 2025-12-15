@@ -506,6 +506,137 @@
         </div>
     </div>
 </div>
+
+
+
+<!-- Annotation Modal -->
+<div class="modal fade" id="annotationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chart Annotation Tool - {{ trade.symbol }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="container-fluid h-100">
+                    <div class="row h-100">
+                        <!-- Tools Panel -->
+                        <div class="col-md-2 bg-dark border-end">
+                            <div class="d-flex flex-column p-3">
+                                <!-- Drawing Tools -->
+                                <h6 class="text-light mb-3">Drawing Tools</h6>
+
+                                <div class="btn-group-vertical w-100 mb-3" role="group">
+                                    <button type="button" class="btn btn-outline-primary active" data-tool="select">
+                                        <i class="fas fa-mouse-pointer"></i> Select
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary" data-tool="line">
+                                        <i class="fas fa-minus"></i> Line
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary" data-tool="horizontal-line">
+                                        <i class="fas fa-arrows-alt-h"></i> Horizontal
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary" data-tool="vertical-line">
+                                        <i class="fas fa-arrows-alt-v"></i> Vertical
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary" data-tool="ray">
+                                        <i class="fas fa-long-arrow-alt-right"></i> Ray
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary" data-tool="arrow">
+                                        <i class="fas fa-arrow-right"></i> Arrow
+                                    </button>
+                                </div>
+
+                                <div class="btn-group-vertical w-100 mb-3" role="group">
+                                    <button type="button" class="btn btn-outline-primary" data-tool="rectangle">
+                                        <i class="fas fa-square"></i> Rectangle
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary" data-tool="circle">
+                                        <i class="fas fa-circle"></i> Circle
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary" data-tool="triangle">
+                                        <i class="fas fa-play"></i> Triangle
+                                    </button>
+                                </div>
+
+                                <!-- Fibonacci Tools -->
+                                <h6 class="text-light mb-3 mt-3">Fibonacci</h6>
+                                <div class="btn-group-vertical w-100 mb-3" role="group">
+                                    <button type="button" class="btn btn-outline-warning" data-tool="fibonacci-retracement">
+                                        <i class="fas fa-ruler-combined"></i> Retracement
+                                    </button>
+                                    <button type="button" class="btn btn-outline-warning" data-tool="fibonacci-extension">
+                                        <i class="fas fa-expand-arrows-alt"></i> Extension
+                                    </button>
+                                </div>
+
+                                <!-- Text & Freehand -->
+                                <div class="btn-group-vertical w-100 mb-3" role="group">
+                                    <button type="button" class="btn btn-outline-info" data-tool="text">
+                                        <i class="fas fa-font"></i> Text
+                                    </button>
+                                    <button type="button" class="btn btn-outline-info" data-tool="freehand">
+                                        <i class="fas fa-pencil-alt"></i> Freehand
+                                    </button>
+                                </div>
+
+                                <!-- Delete Tools -->
+                                <div class="btn-group-vertical w-100 mb-3" role="group">
+                                    <button type="button" class="btn btn-outline-danger" id="deleteSelected">
+                                        <i class="fas fa-trash"></i> Delete Selected
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger" id="clearAll">
+                                        <i class="fas fa-broom"></i> Clear All
+                                    </button>
+                                </div>
+
+                                <!-- Properties -->
+                                <h6 class="text-light mb-3 mt-3">Properties</h6>
+                                <div class="mb-3">
+                                    <label class="form-label text-light small">Color</label>
+                                    <input type="color" class="form-control form-control-color" id="drawingColor" value="#ff0000">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-light small">Line Width</label>
+                                    <input type="range" class="form-range" id="lineWidth" min="1" max="10" value="2">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-light small">Font Size</label>
+                                    <input type="range" class="form-range" id="fontSize" min="12" max="36" value="16">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Canvas Area -->
+                        <div class="col-md-10">
+                            <div class="position-relative h-100">
+                                <canvas id="annotationCanvas" width="1200" height="800"
+                                        style="border: 1px solid #444; background: #1a1a1a; cursor: crosshair;">
+                                </canvas>
+                                <div id="canvasOverlay" class="position-absolute top-0 start-0 w-100 h-100"
+                                     style="pointer-events: none; z-index: 10;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="me-auto">
+                    <button type="button" class="btn btn-outline-secondary" id="undoBtn" disabled>
+                        <i class="fas fa-undo"></i> Undo
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" id="redoBtn" disabled>
+                        <i class="fas fa-redo"></i> Redo
+                    </button>
+                </div>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="saveAnnotation">
+                    <i class="fas fa-save"></i> Save Annotations
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block styles %}
@@ -616,6 +747,439 @@ document.addEventListener('keydown', function(event) {
         }
     }
 });
+// Annotation functionality
+let annotationCanvas;
+let annotationCtx;
+let currentTool = 'select';
+let isDrawing = false;
+let startX, startY;
+let currentAnnotation = null;
+let annotations = [];
+let annotationHistory = [];
+let currentHistoryIndex = -1;
+let currentImageId = null;
+
+function initImageAnnotation() {
+    const images = document.querySelectorAll('.screenshot-image');
+    images.forEach(img => {
+        img.addEventListener('click', function() {
+            const imageId = this.dataset.imageId || 'default';
+            openAnnotationTool(this.src, imageId);
+        });
+    });
+}
+
+function openAnnotationTool(imageSrc, imageId) {
+    currentImageId = imageId;
+    const modal = new bootstrap.Modal(document.getElementById('annotationModal'));
+    
+    // Initialize canvas
+    annotationCanvas = document.getElementById('annotationCanvas');
+    annotationCtx = annotationCanvas.getContext('2d');
+    
+    // Load image onto canvas
+    const img = new Image();
+    img.onload = function() {
+        // Scale canvas to image dimensions while maintaining aspect ratio
+        const maxWidth = 1200;
+        const maxHeight = 800;
+        let { width, height } = calculateAspectRatio(img.width, img.height, maxWidth, maxHeight);
+        
+        annotationCanvas.width = width;
+        annotationCanvas.height = height;
+        
+        annotationCtx.drawImage(img, 0, 0, width, height);
+        
+        // Load existing annotations
+        loadAnnotations(imageId);
+    };
+    img.src = imageSrc;
+    
+    // Set up event listeners
+    setupAnnotationTools();
+    setupCanvasEvents();
+    
+    modal.show();
+}
+
+function calculateAspectRatio(imgWidth, imgHeight, maxWidth, maxHeight) {
+    const ratio = Math.min(maxWidth / imgWidth, maxHeight / imgHeight);
+    return {
+        width: imgWidth * ratio,
+        height: imgHeight * ratio
+    };
+}
+
+function setupAnnotationTools() {
+    // Tool selection
+    document.querySelectorAll('[data-tool]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Update active tool
+            document.querySelectorAll('[data-tool]').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentTool = this.dataset.tool;
+            annotationCanvas.style.cursor = currentTool === 'select' ? 'default' : 'crosshair';
+        });
+    });
+
+    // Delete buttons
+    document.getElementById('deleteSelected').addEventListener('click', deleteSelected);
+    document.getElementById('clearAll').addEventListener('click', clearAllAnnotations);
+
+    // Undo/Redo
+    document.getElementById('undoBtn').addEventListener('click', undo);
+    document.getElementById('redoBtn').addEventListener('click', redo);
+
+    // Save annotation
+    document.getElementById('saveAnnotation').addEventListener('click', saveAnnotations);
+}
+
+function setupCanvasEvents() {
+    annotationCanvas.addEventListener('mousedown', startDrawing);
+    annotationCanvas.addEventListener('mousemove', draw);
+    annotationCanvas.addEventListener('mouseup', stopDrawing);
+    annotationCanvas.addEventListener('mouseout', stopDrawing);
+}
+
+function startDrawing(e) {
+    if (currentTool === 'select') return;
+    
+    isDrawing = true;
+    const rect = annotationCanvas.getBoundingClientRect();
+    startX = e.clientX - rect.left;
+    startY = e.clientY - rect.top;
+    
+    currentAnnotation = {
+        type: currentTool,
+        points: [{x: startX, y: startY}],
+        color: document.getElementById('drawingColor').value,
+        lineWidth: parseInt(document.getElementById('lineWidth').value),
+        fontSize: parseInt(document.getElementById('fontSize').value),
+        id: Date.now().toString()
+    };
+    
+    if (currentTool === 'text') {
+        const text = prompt('Enter text:');
+        if (text) {
+            currentAnnotation.text = text;
+            drawAnnotation(currentAnnotation);
+            annotations.push(currentAnnotation);
+            saveToHistory();
+        }
+        isDrawing = false;
+        currentAnnotation = null;
+    }
+}
+
+function draw(e) {
+    if (!isDrawing || !currentAnnotation) return;
+    
+    const rect = annotationCanvas.getBoundingClientRect();
+    const currentX = e.clientX - rect.left;
+    const currentY = e.clientY - rect.top;
+    
+    // Update current annotation
+    if (currentTool === 'freehand') {
+        currentAnnotation.points.push({x: currentX, y: currentY});
+    } else {
+        currentAnnotation.points[1] = {x: currentX, y: currentY};
+    }
+    
+    // Redraw canvas
+    redrawCanvas();
+}
+
+function stopDrawing() {
+    if (!isDrawing || !currentAnnotation) return;
+    
+    isDrawing = false;
+    
+    if (currentAnnotation.points.length > 1 || currentTool === 'freehand') {
+        annotations.push(currentAnnotation);
+        saveToHistory();
+    }
+    
+    currentAnnotation = null;
+}
+
+function redrawCanvas() {
+    // Clear canvas
+    annotationCtx.clearRect(0, 0, annotationCanvas.width, annotationCanvas.height);
+    
+    // Redraw image (we need to store the original image)
+    const img = new Image();
+    img.onload = function() {
+        annotationCtx.drawImage(img, 0, 0, annotationCanvas.width, annotationCanvas.height);
+        
+        // Draw all annotations
+        annotations.forEach(annotation => drawAnnotation(annotation));
+        
+        // Draw current annotation
+        if (currentAnnotation) {
+            drawAnnotation(currentAnnotation);
+        }
+    };
+    // We need to store the original image source - for simplicity, we'll reload it
+    // In production, you might want to store the image data
+    img.src = annotationCanvas.toDataURL();
+}
+
+function drawAnnotation(annotation) {
+    annotationCtx.strokeStyle = annotation.color;
+    annotationCtx.fillStyle = annotation.color;
+    annotationCtx.lineWidth = annotation.lineWidth;
+    annotationCtx.lineCap = 'round';
+    annotationCtx.lineJoin = 'round';
+    
+    switch (annotation.type) {
+        case 'line':
+        case 'horizontal-line':
+        case 'vertical-line':
+        case 'ray':
+            drawLine(annotation);
+            break;
+        case 'arrow':
+            drawArrow(annotation);
+            break;
+        case 'rectangle':
+            drawRectangle(annotation);
+            break;
+        case 'circle':
+            drawCircle(annotation);
+            break;
+        case 'triangle':
+            drawTriangle(annotation);
+            break;
+        case 'freehand':
+            drawFreehand(annotation);
+            break;
+        case 'text':
+            drawText(annotation);
+            break;
+        case 'fibonacci-retracement':
+            drawFibonacciRetracement(annotation);
+            break;
+        case 'fibonacci-extension':
+            drawFibonacciExtension(annotation);
+            break;
+    }
+}
+
+function drawLine(annotation) {
+    const [start, end] = annotation.points;
+    annotationCtx.beginPath();
+    
+    if (annotation.type === 'horizontal-line') {
+        annotationCtx.moveTo(0, start.y);
+        annotationCtx.lineTo(annotationCanvas.width, start.y);
+    } else if (annotation.type === 'vertical-line') {
+        annotationCtx.moveTo(start.x, 0);
+        annotationCtx.lineTo(start.x, annotationCanvas.height);
+    } else if (annotation.type === 'ray') {
+        annotationCtx.moveTo(start.x, start.y);
+        const dx = end.x - start.x;
+        const dy = end.y - start.y;
+        const length = Math.sqrt(dx * dx + dy * dy);
+        const scale = Math.max(annotationCanvas.width, annotationCanvas.height) / length;
+        annotationCtx.lineTo(start.x + dx * scale, start.y + dy * scale);
+    } else {
+        annotationCtx.moveTo(start.x, start.y);
+        annotationCtx.lineTo(end.x, end.y);
+    }
+    
+    annotationCtx.stroke();
+}
+
+function drawArrow(annotation) {
+    const [start, end] = annotation.points;
+    const headLength = 15;
+    const angle = Math.atan2(end.y - start.y, end.x - start.x);
+    
+    // Draw line
+    annotationCtx.beginPath();
+    annotationCtx.moveTo(start.x, start.y);
+    annotationCtx.lineTo(end.x, end.y);
+    annotationCtx.stroke();
+    
+    // Draw arrowhead
+    annotationCtx.beginPath();
+    annotationCtx.moveTo(end.x, end.y);
+    annotationCtx.lineTo(
+        end.x - headLength * Math.cos(angle - Math.PI / 6),
+        end.y - headLength * Math.sin(angle - Math.PI / 6)
+    );
+    annotationCtx.lineTo(
+        end.x - headLength * Math.cos(angle + Math.PI / 6),
+        end.y - headLength * Math.sin(angle + Math.PI / 6)
+    );
+    annotationCtx.closePath();
+    annotationCtx.fill();
+}
+
+function drawRectangle(annotation) {
+    const [start, end] = annotation.points;
+    const width = end.x - start.x;
+    const height = end.y - start.y;
+    
+    annotationCtx.strokeRect(start.x, start.y, width, height);
+}
+
+function drawCircle(annotation) {
+    const [start, end] = annotation.points;
+    const radius = Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2));
+    
+    annotationCtx.beginPath();
+    annotationCtx.arc(start.x, start.y, radius, 0, 2 * Math.PI);
+    annotationCtx.stroke();
+}
+
+function drawTriangle(annotation) {
+    const [start, end] = annotation.points;
+    
+    annotationCtx.beginPath();
+    annotationCtx.moveTo(start.x, start.y);
+    annotationCtx.lineTo(end.x, end.y);
+    annotationCtx.lineTo(start.x - (end.x - start.x), end.y);
+    annotationCtx.closePath();
+    annotationCtx.stroke();
+}
+
+function drawFreehand(annotation) {
+    if (annotation.points.length < 2) return;
+    
+    annotationCtx.beginPath();
+    annotationCtx.moveTo(annotation.points[0].x, annotation.points[0].y);
+    
+    for (let i = 1; i < annotation.points.length; i++) {
+        annotationCtx.lineTo(annotation.points[i].x, annotation.points[i].y);
+    }
+    
+    annotationCtx.stroke();
+}
+
+function drawText(annotation) {
+    const [point] = annotation.points;
+    annotationCtx.font = `${annotation.fontSize}px Arial`;
+    annotationCtx.fillText(annotation.text, point.x, point.y);
+}
+
+function drawFibonacciRetracement(annotation) {
+    const [start, end] = annotation.points;
+    const levels = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1];
+    const priceRange = end.y - start.y;
+    
+    levels.forEach(level => {
+        const y = start.y + priceRange * level;
+        annotationCtx.beginPath();
+        annotationCtx.moveTo(0, y);
+        annotationCtx.lineTo(annotationCanvas.width, y);
+        annotationCtx.stroke();
+        
+        // Draw level label
+        annotationCtx.fillText(`${(level * 100).toFixed(1)}%`, 5, y - 5);
+    });
+}
+
+function drawFibonacciExtension(annotation) {
+    const [start, end] = annotation.points;
+    const levels = [0, 0.618, 1, 1.618, 2.618];
+    const priceRange = end.y - start.y;
+    
+    levels.forEach(level => {
+        const y = start.y + priceRange * level;
+        annotationCtx.beginPath();
+        annotationCtx.moveTo(0, y);
+        annotationCtx.lineTo(annotationCanvas.width, y);
+        annotationCtx.strokeStyle = level >= 1 ? '#ff4444' : annotation.color;
+        annotationCtx.stroke();
+        annotationCtx.strokeStyle = annotation.color;
+        
+        // Draw level label
+        annotationCtx.fillText(`${(level * 100).toFixed(1)}%`, 5, y - 5);
+    });
+}
+
+function deleteSelected() {
+    // For simplicity, delete the last annotation
+    // In a full implementation, you'd have selection logic
+    if (annotations.length > 0) {
+        annotations.pop();
+        saveToHistory();
+        redrawCanvas();
+    }
+}
+
+function clearAllAnnotations() {
+    if (confirm('Are you sure you want to clear all annotations?')) {
+        annotations = [];
+        saveToHistory();
+        redrawCanvas();
+    }
+}
+
+function saveToHistory() {
+    // Remove any future history if we're not at the end
+    annotationHistory = annotationHistory.slice(0, currentHistoryIndex + 1);
+    annotationHistory.push(JSON.parse(JSON.stringify(annotations)));
+    currentHistoryIndex = annotationHistory.length - 1;
+    updateUndoRedoButtons();
+}
+
+function undo() {
+    if (currentHistoryIndex > 0) {
+        currentHistoryIndex--;
+        annotations = JSON.parse(JSON.stringify(annotationHistory[currentHistoryIndex]));
+        redrawCanvas();
+        updateUndoRedoButtons();
+    }
+}
+
+function redo() {
+    if (currentHistoryIndex < annotationHistory.length - 1) {
+        currentHistoryIndex++;
+        annotations = JSON.parse(JSON.stringify(annotationHistory[currentHistoryIndex]));
+        redrawCanvas();
+        updateUndoRedoButtons();
+    }
+}
+
+function updateUndoRedoButtons() {
+    document.getElementById('undoBtn').disabled = currentHistoryIndex <= 0;
+    document.getElementById('redoBtn').disabled = currentHistoryIndex >= annotationHistory.length - 1;
+}
+
+function saveAnnotations() {
+    const annotationData = {
+        annotations: annotations,
+        canvasWidth: annotationCanvas.width,
+        canvasHeight: annotationCanvas.height
+    };
+    
+    // Save to localStorage for demo purposes
+    // In production, you'd send this to your server
+    localStorage.setItem(`annotations_${currentImageId}`, JSON.stringify(annotationData));
+    
+    // Show success message
+    alert('Annotations saved successfully!');
+}
+
+function loadAnnotations(imageId) {
+    const saved = localStorage.getItem(`annotations_${imageId}`);
+    if (saved) {
+        const data = JSON.parse(saved);
+        annotations = data.annotations || [];
+        annotationHistory = [JSON.parse(JSON.stringify(annotations))];
+        currentHistoryIndex = 0;
+        updateUndoRedoButtons();
+        redrawCanvas();
+    }
+}
+
+// Initialize annotation when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initImageAnnotation();
+});
+
 
 // Add loading state for images
 document.addEventListener('DOMContentLoaded', function() {
@@ -629,5 +1193,22 @@ document.addEventListener('DOMContentLoaded', function() {
         img.style.transition = 'opacity 0.3s ease-in-out';
     });
 });
+
+function initImageAnnotation() {
+    const images = document.querySelectorAll('.screenshot-image');
+    images.forEach(img => {
+        img.addEventListener('click', function() {
+            openAnnotationTool(this.src);
+        });
+    });
+}
+
+function openAnnotationTool(imageSrc) {
+    // Implement drawing tools for chart analysis
+    // Lines, arrows, text, Fibonacci, etc.
+    const modal = new bootstrap.Modal(document.getElementById('annotationModal'));
+    document.getElementById('annotationImage').src = imageSrc;
+    modal.show();
+}
 </script>
 {% endblock %}

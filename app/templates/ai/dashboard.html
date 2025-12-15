@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Insights Dashboard - Forex Journal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --danger-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --warning-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            --info-gradient: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        .dashboard-header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+        }
+
+        .stat-card.emotion::before { background: var(--danger-gradient); }
+        .stat-card.patterns::before { background: var(--success-gradient); }
+        .stat-card.recommendations::before { background: var(--warning-gradient); }
+        .stat-card.risk::before { background: var(--info-gradient); }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            opacity: 0.2;
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .insight-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border-left: 4px solid #e9ecef;
+            position: relative;
+        }
+
+        .insight-card:hover {
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transform: translateX(5px);
+        }
+
+        .insight-card.high-priority {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        .insight-card.high-priority::after {
+            content: '🚨 HIGH PRIORITY';
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: #dc3545;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        .insight-card.emotion-analysis { border-left-color: #dc3545; }
+        .insight-card.behavioral-pattern { border-left-color: #198754; }
+        .insight-card.time-pattern { border-left-color: #0dcaf0; }
+        .insight-card.recommendation { border-left-color: #ffc107; }
+        .insight-card.risk-analysis { border-left-color: #6f42c1; }
+        .insight-card.prediction { border-left-color: #fd7e14; }
+        .insight-card.psychological-bias { border-left-color: #d63384; }
+
+        .confidence-bar {
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            margin-top: 0.8rem;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            border-radius: 3px;
+            position: relative;
+            transition: width 0.5s ease;
+        }
+
+        .confidence-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));
+        }
+
+        .confidence-high { background: linear-gradient(90deg, #198754, #20c997); }
+        .confidence-medium { background: linear-gradient(90deg, #ffc107, #fd7e14); }
+        .confidence-low { background: linear-gradient(90deg, #6c757d, #adb5bd); }
+
+        .section-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: 1.2rem 1.5rem;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .section-body {
+            padding: 1.5rem;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .section-body::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .section-body::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .section-body::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+
+        .section-body::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .badge-insight-type {
+            font-size: 0.7rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metadata-chip {
+            display: inline-block;
+            background: #f8f9fa;
+            padding: 0.3rem 0.6rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            margin-right: 0.3rem;
+            margin-top: 0.3rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            opacity: 0.3;
+            margin-bottom: 1rem;
+        }
+
+        .analyze-btn {
+            background: var(--primary-gradient);
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 25px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .chat-fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--success-gradient);
+            color: white;
+            border: none;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .chat-fab:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+        }
+
+        .learning-log-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            padding: 0.5rem 1rem;
+            border: 2px solid #dee2e6;
+            border-radius: 20px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .filter-tab:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .filter-tab.active {
+            background: var(--primary-gradient);
+            color: white;
+            border-color: transparent;
+        }
+
+        .insight-metadata {
+            margin-top: 0.8rem;
+            padding-top: 0.8rem;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .insight-card {
+            animation: slideIn 0.3s ease;
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="mb-2">
+                        <i class="bi bi-brain"></i> AI Trading Intelligence
+                    </h1>
+                    <p class="mb-0 opacity-90">
+                        Advanced pattern recognition and behavioral analysis powered by machine learning
+                    </p>
+                </div>
+                <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                    <a class="btn btn-light me-2" href="{{ url_for('dashboard.index') }}">
+                        <i class="bi bi-house"></i> Home
+                    </a>
+                    <button id="analyzeBtn" class="analyze-btn">
+                        <i class="bi bi-lightning-charge"></i> Run Analysis
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="stat-card emotion">
+                    <i class="bi bi-emoji-smile stat-icon"></i>
+                    <h6 class="text-muted mb-2">Emotional Insights</h6>
+                    <h2 class="mb-0">{{ insights.emotion|length }}</h2>
+                    <small class="text-muted">Psychology analysis</small>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card patterns">
+                    <i class="bi bi-graph-up stat-icon"></i>
+                    <h6 class="text-muted mb-2">Patterns Detected</h6>
+                    <h2 class="mb-0">{{ insights.patterns|length }}</h2>
+                    <small class="text-muted">Behavioral patterns</small>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card recommendations">
+                    <i class="bi bi-lightbulb stat-icon"></i>
+                    <h6 class="text-muted mb-2">Recommendations</h6>
+                    <h2 class="mb-0">{{ insights.recommendations|length }}</h2>
+                    <small class="text-muted">Action items</small>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card risk">
+                    <i class="bi bi-shield-exclamation stat-icon"></i>
+                    <h6 class="text-muted mb-2">Risk Alerts</h6>
+                    <h2 class="mb-0">{{ insights.risk|length }}</h2>
+                    <small class="text-muted">Risk management</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="row">
+            <!-- Priority Insights -->
+            {% set high_priority = [] %}
+            {% for category in insights.values() %}
+                {% for insight in category %}
+                    {% if insight.priority == 'high' %}
+                        {% set _ = high_priority.append(insight) %}
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+
+            {% if high_priority %}
+            <div class="col-12 mb-4">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+                            High Priority Alerts
+                        </h5>
+                    </div>
+                    <div class="section-body">
+                        {% for insight in high_priority %}
+                        <div class="insight-card high-priority {{ insight.type }}">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="flex-grow-1">
+                                    <span class="badge-insight-type bg-danger">{{ insight.type|replace('_', ' ')|upper }}</span>
+                                    <h6 class="mt-2 mb-2">{{ insight.value }}</h6>
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
+                                            data-bs-toggle="dropdown">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="#" onclick="feedbackInsight({{ insight.id }}, 'agree')">
+                                            <i class="bi bi-check-circle text-success"></i> Agree
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="feedbackInsight({{ insight.id }}, 'disagree')">
+                                            <i class="bi bi-x-circle text-danger"></i> Disagree
+                                        </a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            {% if insight.recommendation %}
+                            <div class="alert alert-warning mb-2 py-2" role="alert">
+                                <i class="bi bi-lightbulb-fill"></i> <strong>Action:</strong> {{ insight.recommendation }}
+                            </div>
+                            {% endif %}
+
+                            {% if insight.metadata %}
+                            <div class="insight-metadata">
+                                {% for key, value in insight.metadata.items() %}
+                                    <span class="metadata-chip">
+                                        <strong>{{ key|replace('_', ' ')|title }}:</strong> 
+                                        {% if value is number %}
+                                            {{ "%.2f"|format(value) }}
+                                        {% else %}
+                                            {{ value }}
+                                        {% endif %}
+                                    </span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+
+                            <div class="confidence-bar">
+                                <div class="confidence-fill 
+                                    {% if insight.confidence >= 0.7 %}confidence-high
+                                    {% elif insight.confidence >= 0.5 %}confidence-medium
+                                    {% else %}confidence-low{% endif %}"
+                                    style="width: {{ insight.confidence * 100 }}%">
+                                </div>
+                            </div>
+                            <small class="text-muted">
+                                Confidence: {{ (insight.confidence * 100)|int }}% 
+                                | Updated: {{ insight.last_updated|datetimeformat }}
+                            </small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Emotional Intelligence -->
+            <div class="col-lg-6 mb-4">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-emoji-smile text-danger"></i> Emotional Intelligence
+                        </h5>
+                    </div>
+                    <div class="section-body">
+                        {% for insight in insights.emotion %}
+                        <div class="insight-card emotion-analysis">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <span class="badge-insight-type" style="background: #ffe5e5; color: #dc3545;">
+                                        {{ insight.type|replace('_', ' ')|upper }}
+                                    </span>
+                                    <h6 class="mt-2 mb-1">{{ insight.value }}</h6>
+                                    
+                                    {% if insight.recommendation %}
+                                    <p class="mb-2 text-muted small">
+                                        <i class="bi bi-arrow-right-circle"></i> {{ insight.recommendation }}
+                                    </p>
+                                    {% endif %}
+
+                                    {% if insight.metadata %}
+                                    <div class="mt-2">
+                                        {% if insight.metadata.win_rate is defined %}
+                                        <span class="metadata-chip">
+                                            Win Rate: {{ "%.1f"|format(insight.metadata.win_rate) }}%
+                                        </span>
+                                        {% endif %}
+                                        {% if insight.metadata.impact_score is defined %}
+                                        <span class="metadata-chip">
+                                            Impact: {{ "%.2f"|format(insight.metadata.impact_score) }}
+                                        </span>
+                                        {% endif %}
+                                        {% if insight.metadata.stability_score is defined %}
+                                        <span class="metadata-chip">
+                                            Stability: {{ "%.2f"|format(insight.metadata.stability_score) }}
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
+                                            data-bs-toggle="dropdown">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="#" onclick="feedbackInsight({{ insight.id }}, 'agree')">
+                                            <i class="bi bi-check-circle"></i> Agree
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="feedbackInsight({{ insight.id }}, 'disagree')">
+                                            <i class="bi bi-x-circle"></i> Disagree
+                                        </a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="confidence-bar">
+                                <div class="confidence-fill 
+                                    {% if insight.confidence >= 0.7 %}confidence-high
+                                    {% elif insight.confidence >= 0.5 %}confidence-medium
+                                    {% else %}confidence-low{% endif %}"
+                                    style="width: {{ insight.confidence * 100 }}%">
+                                </div>
+                            </div>
+                            <small class="text-muted">Confidence: {{ (insight.confidence * 100)|int }}%</small>
+                        </div>
+                        {% else %}
+                        <div class="empty-state">
+                            <i class="bi bi-emoji-neutral"></i>
+                            <p>Record emotions with your trades to unlock emotional intelligence insights</p>
+                            <small class="text-muted">Track at least 10 trades with emotional states</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Behavioral Patterns -->
+            <div class="col-lg-6 mb-4">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-graph-up text-success"></i> Behavioral Patterns
+                        </h5>
+                    </div>
+                    <div class="section-body">
+                        {% for insight in insights.patterns %}
+                        <div class="insight-card {{ insight.type }}">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <span class="badge-insight-type" style="background: #e5f9ef; color: #198754;">
+                                        {{ insight.type|replace('_', ' ')|upper }}
+                                    </span>
+                                    <h6 class="mt-2 mb-1">{{ insight.value }}</h6>
+                                    
+                                    {% if insight.recommendation %}
+                                    <p class="mb-2 text-muted small">
+                                        <i class="bi bi-arrow-right-circle"></i> {{ insight.recommendation }}
+                                    </p>
+                                    {% endif %}
+
+                                    {% if insight.interpretation %}
+                                    <div class="alert alert-info mb-2 py-2" role="alert">
+                                        <i class="bi bi-info-circle"></i> {{ insight.interpretation }}
+                                    </div>
+                                    {% endif %}
+
+                                    {% if insight.metadata %}
+                                    <div class="mt-2">
+                                        {% for key, value in insight.metadata.items() if key not in ['interpretation'] %}
+                                        <span class="metadata-chip">
+                                            <strong>{{ key|replace('_', ' ')|title }}:</strong> 
+                                            {% if value is number %}
+                                                {{ "%.2f"|format(value) }}
+                                            {% else %}
+                                                {{ value }}
+                                            {% endif %}
+                                        </span>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="confidence-bar">
+                                <div class="confidence-fill 
+                                    {% if insight.confidence >= 0.7 %}confidence-high
+                                    {% elif insight.confidence >= 0.5 %}confidence-medium
+                                    {% else %}confidence-low{% endif %}"
+                                    style="width: {{ insight.confidence * 100 }}%">
+                                </div>
+                            </div>
+                            <small class="text-muted">
+                                Confidence: {{ (insight.confidence * 100)|int }}% 
+                                | Last seen: {{ insight.last_updated|datetimeformat }}
+                            </small>
+                        </div>
+                        {% else %}
+                        <div class="empty-state">
+                            <i class="bi bi-graph-up"></i>
+                            <p>Patterns emerge with consistent trading</p>
+                            <small class="text-muted">Take at least 15 trades to detect patterns</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recommendations -->
+            <div class="col-lg-6 mb-4">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-lightbulb text-warning"></i> Personalized Recommendations
+                        </h5>
+                    </div>
+                    <div class="section-body">
+                        {% for insight in insights.recommendations %}
+                        <div class="insight-card recommendation">
+                            <div class="d-flex align-items-start">
+                                <div class="me-3 mt-1">
+                                    <i class="bi bi-lightbulb-fill text-warning" style="font-size: 1.5rem;"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-2">{{ insight.value }}</h6>
+                                    {% if insight.recommendation %}
+                                    <div class="alert alert-warning mb-0 py-2" role="alert">
+                                        <strong>Action Plan:</strong> {{ insight.recommendation }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="confidence-bar">
+                                <div class="confidence-fill 
+                                    {% if insight.confidence >= 0.7 %}confidence-high
+                                    {% elif insight.confidence >= 0.5 %}confidence-medium
+                                    {% else %}confidence-low{% endif %}"
+                                    style="width: {{ insight.confidence * 100 }}%">
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="empty-state">
+                            <i class="bi bi-lightbulb"></i>
+                            <p>Take 20+ trades to unlock personalized recommendations</p>
+                            <small class="text-muted">Best practices will be shown here</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Risk Management -->
+            <div class="col-lg-6 mb-4">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-shield-exclamation text-purple"></i> Risk Management
+                        </h5>
+                    </div>
+                    <div class="section-body">
+                        {% for insight in insights.risk %}
+                        <div class="insight-card risk-analysis">
+                            <div class="d-flex align-items-start">
+                                <div class="me-3 mt-1">
+                                    <i class="bi bi-exclamation-triangle text-purple" style="font-size: 1.5rem;"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-2">{{ insight.value }}</h6>
+                                    {% if insight.recommendation %}
+                                    <p class="mb-0 text-danger small">
+                                        <i class="bi bi-shield-fill-check"></i> {{ insight.recommendation }}
+                                    </p>
+                                    {% endif %}
+
+                                    {% if insight.metadata %}
+                                    <div class="mt-2">
+                                        {% for key, value in insight.metadata.items() %}
+                                        <span class="metadata-chip">
+                                            <strong>{{ key|replace('_', ' ')|title }}:</strong> 
+                                            {% if value is number %}
+                                                {{ "%.2f"|format(value) }}
+                                            {% else %}
+                                                {{ value }}
+                                            {% endif %}
+                                        </span>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="confidence-bar">
+                                <div class="confidence-fill 
+                                    {% if insight.confidence >= 0.7 %}confidence-high
+                                    {% elif insight.confidence >= 0.5 %}confidence-medium
+                                    {% else %}confidence-low{% endif %}"
+                                    style="width: {{ insight.confidence * 100 }}%">
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="empty-state">
+                            <i class="bi bi-shield-check"></i>
+                            <p>Risk analysis available after 10+ trades</p>
+                            <small class="text-muted">We'll analyze your risk management patterns</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Learning Activity Log -->
+        <div class="row">
+            <div class="col-12">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="bi bi-clock-history"></i> AI Learning Activity
+                            </h5>
+                            <small class="text-muted">Recent analysis sessions</small>
+                        </div>
+                    </div>
+                    <div class="section-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Event Type</th>
+                                        <th>Insights Generated</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for log in recent_logs %}
+                                    <tr>
+                                        <td>
+                                            <small>{{ log.created_at|datetimeformat }}</small>
+                                        </td>
+                                        <td>
+                                            {% if log.event_type == 'trade_added' %}
+                                                <span class="learning-log-badge bg-primary">
+                                                    <i class="bi bi-plus-circle"></i> New Trade
+                                                </span>
+                                            {% elif log.event_type == 'ai_analysis_completed' %}
+                                                <span class="learning-log-badge bg-success">
+                                                    <i class="bi bi-cpu"></i> AI Analysis
+                                                </span>
+                                            {% elif log.event_type == 'manual_analysis_triggered' %}
+                                                <span class="learning-log-badge bg-info">
+                                                    <i class="bi bi-lightning"></i> Manual Trigger
+                                                </span>
+                                            {% else %}
+                                                <span class="learning-log-badge bg-secondary">
+                                                    {{ log.event_type }}
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if log.learned_insights %}
+                                                <strong>{{ log.learned_insights|length }}</strong> insights
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-success">✓ Complete</span>
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="4" class="text-center py-4">
+                                            <i class="bi bi-inbox text-muted" style="font-size: 2rem;"></i>
+                                            <p class="text-muted mt-2">No learning sessions yet. Click "Run Analysis" to start!</p>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Chat Button -->
+    <button class="chat-fab" onclick="window.location.href='/ai/chat'" 
+            title="Chat with AI Assistant">
+        <i class="bi bi-chat-dots-fill"></i>
+    </button>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Run Analysis
+        document.getElementById('analyzeBtn').addEventListener('click', function() {
+            const btn = this;
+            const originalHTML = btn.innerHTML;
+            
+            btn.innerHTML = '<i class="bi bi-hourglass-split pulse"></i> Analyzing...';
+            btn.disabled = true;
+            
+            fetch('/ai/analyze')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show success message
+                        showNotification('success', data.message);
+                        
+                        // Reload after a short delay
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        showNotification('error', 'Analysis failed. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('error', 'Network error. Please check your connection.');
+                })
+                .finally(() => {
+                    setTimeout(() => {
+                        btn.innerHTML = originalHTML;
+                        btn.disabled = false;
+                    }, 1000);
+                });
+        });
+        
+        // Feedback on Insights
+        function feedbackInsight(insightId, feedback) {
+            fetch(`/ai/insight/${insightId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    confidence_feedback: feedback
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('success', 'Thank you for your feedback!');
+                    
+                    // Update confidence bar without reload
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                }
+            })
+            .catch(error => {
+                showNotification('error', 'Failed to save feedback');
+            });
+        }
+
+        // Notification System
+        function showNotification(type, message) {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed top-0 start-50 translate-middle-x mt-3`;
+            notification.style.zIndex = '9999';
+            notification.innerHTML = `
+                <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i>
+                ${message}
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transition = 'opacity 0.5s';
+                setTimeout(() => notification.remove(), 500);
+            }, 3000);
+        }
+
+        // Smooth scroll to element
+        function scrollToInsight(insightId) {
+            const element = document.getElementById(`insight-${insightId}`);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                element.style.animation = 'none';
+                setTimeout(() => {
+                    element.style.animation = 'slideIn 0.3s ease';
+                }, 10);
+            }
+        }
+
+        // Auto-refresh every 5 minutes if on page
+        let autoRefreshInterval;
+        function startAutoRefresh() {
+            autoRefreshInterval = setInterval(() => {
+                if (document.visibilityState === 'visible') {
+                    fetch('/ai/insights')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.count > {{ insights.values()|map('length')|sum }}) {
+                                showNotification('info', 'New insights available! Refresh to see them.');
+                            }
+                        });
+                }
+            }, 300000); // 5 minutes
+        }
+
+        // Start auto-refresh on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            startAutoRefresh();
+        });
+
+        // Clean up interval on page unload
+        window.addEventListener('beforeunload', function() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+        });
+    </script>
+</body>
+</html>
