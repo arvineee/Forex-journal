@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from config import Config
+import os
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -14,8 +15,10 @@ def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
     
-    # Ensure upload directory exists
-    import os
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
+                'SQLALCHEMY_DATABASE_URI',
+                    'sqlite:////home/FelixJournal/Forex-journal/forex_journal.db'
+                    )
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     
     db.init_app(app)
