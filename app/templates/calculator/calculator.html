@@ -1,0 +1,541 @@
+{% extends "base.html" %}
+
+{% block title %}Advanced Forex Calculator{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex align-items-center mb-4">
+        <i class="fas fa-calculator fa-lg me-2 text-info"></i>
+        <h3 class="mb-0">Advanced Forex Calculator</h3>
+    </div>
+
+    <ul class="nav nav-pills mb-3" id="calcTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#pos" type="button">
+                <i class="fas fa-ruler-combined me-1"></i>Position Size
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pip" type="button">
+                <i class="fas fa-coins me-1"></i>Pip Value
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#rr" type="button">
+                <i class="fas fa-balance-scale me-1"></i>Risk / Reward
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#margin" type="button">
+                <i class="fas fa-shield-alt me-1"></i>Margin
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#swap" type="button">
+                <i class="fas fa-clock me-1"></i>Swap / Rollover
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+
+        <!-- ============ POSITION SIZE ============ -->
+        <div class="tab-pane fade show active" id="pos">
+            <div class="card bg-dark border-secondary">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Position Size Calculator</h5>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Account Balance ($)</label>
+                            <input type="number" id="posBalance" class="form-control" value="{{ latest_balance or 1000 }}" step="any">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Risk %</label>
+                            <input type="number" id="posRiskPct" class="form-control" value="1" step="any">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Risk Amount ($)</label>
+                            <input type="number" id="posRiskAmt" class="form-control" step="any" placeholder="auto">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Currency Pair</label>
+                            <select id="posPair" class="form-select">
+                                <option value="EURUSD">EUR/USD</option>
+                                <option value="GBPUSD">GBP/USD</option>
+                                <option value="USDJPY">USD/JPY</option>
+                                <option value="USDCHF">USD/CHF</option>
+                                <option value="AUDUSD">AUD/USD</option>
+                                <option value="USDCAD">USD/CAD</option>
+                                <option value="NZDUSD">NZD/USD</option>
+                                <option value="XAUUSD">XAU/USD (Gold)</option>
+                                <option value="OTHER">Other (manual pip value)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Stop Loss (pips)</label>
+                            <input type="number" id="posSL" class="form-control" value="20" step="any">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Manual Pip Value ($/pip per 1 lot)</label>
+                            <input type="number" id="posManualPip" class="form-control" value="10" step="any" disabled>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Account Currency</label>
+                            <select id="posAcctCcy" class="form-select">
+                                <option value="USD" selected>USD</option>
+                                <option value="EUR">EUR</option>
+                                <option value="GBP">GBP</option>
+                                <option value="KES">KES</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button class="btn btn-info w-100" onclick="calcPositionSize()">
+                                <i class="fas fa-bolt me-1"></i>Calculate
+                            </button>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <small id="posRateNote" class="text-muted"></small>
+                        </div>
+                    </div>
+
+                    <hr class="border-secondary">
+                    <div class="row text-center" id="posResults" style="display:none;">
+                        <div class="col-md-3">
+                            <div class="p-3 rounded bg-secondary bg-opacity-25">
+                                <div class="text-muted small">Risk Amount</div>
+                                <div class="fs-5 fw-bold" id="rRiskAmt">--</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3 rounded bg-secondary bg-opacity-25">
+                                <div class="text-muted small">Pip Value (1 lot)</div>
+                                <div class="fs-5 fw-bold" id="rPipValue">--</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3 rounded bg-info bg-opacity-25">
+                                <div class="text-muted small">Position Size (lots)</div>
+                                <div class="fs-5 fw-bold" id="rLots">--</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3 rounded bg-secondary bg-opacity-25">
+                                <div class="text-muted small">Units</div>
+                                <div class="fs-5 fw-bold" id="rUnits">--</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ PIP VALUE ============ -->
+        <div class="tab-pane fade" id="pip">
+            <div class="card bg-dark border-secondary">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Pip Value Calculator</h5>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Currency Pair</label>
+                            <select id="pipPair" class="form-select">
+                                <option value="EURUSD">EUR/USD</option>
+                                <option value="GBPUSD">GBP/USD</option>
+                                <option value="USDJPY">USD/JPY</option>
+                                <option value="USDCHF">USD/CHF</option>
+                                <option value="AUDUSD">AUD/USD</option>
+                                <option value="USDCAD">USD/CAD</option>
+                                <option value="NZDUSD">NZD/USD</option>
+                                <option value="XAUUSD">XAU/USD (Gold)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Lot Size</label>
+                            <input type="number" id="pipLots" class="form-control" value="1" step="any">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Account Currency</label>
+                            <select id="pipAcctCcy" class="form-select">
+                                <option value="USD" selected>USD</option>
+                                <option value="EUR">EUR</option>
+                                <option value="GBP">GBP</option>
+                                <option value="KES">KES</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mt-2">
+                            <button class="btn btn-info w-100" onclick="calcPipValue()">
+                                <i class="fas fa-bolt me-1"></i>Calculate
+                            </button>
+                        </div>
+                    </div>
+                    <hr class="border-secondary">
+                    <div class="row text-center" id="pipResults" style="display:none;">
+                        <div class="col-md-6">
+                            <div class="p-3 rounded bg-secondary bg-opacity-25">
+                                <div class="text-muted small">Pip Value per Lot</div>
+                                <div class="fs-5 fw-bold" id="pipPerLot">--</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 rounded bg-info bg-opacity-25">
+                                <div class="text-muted small">Total Pip Value</div>
+                                <div class="fs-5 fw-bold" id="pipTotal">--</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ RISK / REWARD ============ -->
+        <div class="tab-pane fade" id="rr">
+            <div class="card bg-dark border-secondary">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Risk / Reward Calculator</h5>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Entry Price</label>
+                            <input type="number" id="rrEntry" class="form-control" step="any">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Stop Loss Price</label>
+                            <input type="number" id="rrSL" class="form-control" step="any">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Take Profit Price</label>
+                            <input type="number" id="rrTP" class="form-control" step="any">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Direction</label>
+                            <select id="rrDir" class="form-select">
+                                <option value="buy">Buy / Long</option>
+                                <option value="sell">Sell / Short</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mt-2">
+                            <button class="btn btn-info w-100" onclick="calcRR()">
+                                <i class="fas fa-bolt me-1"></i>Calculate
+                            </button>
+                        </div>
+                    </div>
+                    <hr class="border-secondary">
+                    <div class="row text-center" id="rrResults" style="display:none;">
+                        <div class="col-md-4">
+                            <div class="p-3 rounded bg-secondary bg-opacity-25">
+                                <div class="text-muted small">Risk (price distance)</div>
+                                <div class="fs-5 fw-bold" id="rrRiskDist">--</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 rounded bg-secondary bg-opacity-25">
+                                <div class="text-muted small">Reward (price distance)</div>
+                                <div class="fs-5 fw-bold" id="rrRewardDist">--</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 rounded bg-info bg-opacity-25">
+                                <div class="text-muted small">R:R Ratio</div>
+                                <div class="fs-5 fw-bold" id="rrRatio">--</div>
+                            </div>
+                        </div>
+                        <div class="col-md-12 mt-2">
+                            <div class="alert" id="rrWinNote" style="display:none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ MARGIN ============ -->
+        <div class="tab-pane fade" id="margin">
+            <div class="card bg-dark border-secondary">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Margin Calculator</h5>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Currency Pair</label>
+                            <select id="mgPair" class="form-select">
+                                <option value="EURUSD">EUR/USD</option>
+                                <option value="GBPUSD">GBP/USD</option>
+                                <option value="USDJPY">USD/JPY</option>
+                                <option value="USDCHF">USD/CHF</option>
+                                <option value="AUDUSD">AUD/USD</option>
+                                <option value="USDCAD">USD/CAD</option>
+                                <option value="XAUUSD">XAU/USD (Gold)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Lot Size</label>
+                            <input type="number" id="mgLots" class="form-control" value="1" step="any">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Leverage (1:x)</label>
+                            <input type="number" id="mgLeverage" class="form-control" value="100" step="any">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Current Price</label>
+                            <input type="number" id="mgPrice" class="form-control" step="any" placeholder="e.g. 1.0850">
+                        </div>
+                        <div class="col-md-3 mt-2">
+                            <button class="btn btn-info w-100" onclick="calcMargin()">
+                                <i class="fas fa-bolt me-1"></i>Calculate
+                            </button>
+                        </div>
+                    </div>
+                    <hr class="border-secondary">
+                    <div class="row text-center" id="mgResults" style="display:none;">
+                        <div class="col-md-6">
+                            <div class="p-3 rounded bg-secondary bg-opacity-25">
+                                <div class="text-muted small">Contract Value</div>
+                                <div class="fs-5 fw-bold" id="mgNotional">--</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 rounded bg-info bg-opacity-25">
+                                <div class="text-muted small">Required Margin</div>
+                                <div class="fs-5 fw-bold" id="mgRequired">--</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ SWAP ============ -->
+        <div class="tab-pane fade" id="swap">
+            <div class="card bg-dark border-secondary">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Swap / Rollover Calculator</h5>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Lot Size</label>
+                            <input type="number" id="swLots" class="form-control" value="1" step="any">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Swap (points/lot/night)</label>
+                            <input type="number" id="swRate" class="form-control" value="-7" step="any">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Pip Value ($/pip per lot)</label>
+                            <input type="number" id="swPipValue" class="form-control" value="10" step="any">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Nights Held</label>
+                            <input type="number" id="swNights" class="form-control" value="1" step="1">
+                        </div>
+                        <div class="col-md-3 mt-2">
+                            <button class="btn btn-info w-100" onclick="calcSwap()">
+                                <i class="fas fa-bolt me-1"></i>Calculate
+                            </button>
+                        </div>
+                        <div class="col-md-9 mt-2 d-flex align-items-center">
+                            <small class="text-muted">Tip: Wednesday rollovers are usually charged 3x by most brokers — include that manually in "Nights Held" if needed.</small>
+                        </div>
+                    </div>
+                    <hr class="border-secondary">
+                    <div class="row text-center" id="swResults" style="display:none;">
+                        <div class="col-md-12">
+                            <div class="p-3 rounded bg-info bg-opacity-25">
+                                <div class="text-muted small">Total Swap Cost / Credit</div>
+                                <div class="fs-5 fw-bold" id="swTotal">--</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+// Pairs whose quote currency is USD (pip value naturally in USD for standard lot, JPY pairs handled separately)
+const JPY_PAIRS = ['USDJPY'];
+const STANDARD_PIP_USD = {
+    EURUSD: 10, GBPUSD: 10, AUDUSD: 10, NZDUSD: 10,  // quote = USD, pip value ~ $10/lot
+    USDCHF: 10, USDCAD: 10,  // approximate, varies with rate but close enough
+    USDJPY: 1000,  // pip = 0.01, raw value before /rate
+    XAUUSD: 10  // 1 lot = 100oz, pip = 0.01 => handled specially below
+};
+
+function pipSizeFor(pair) {
+    if (pair === 'USDJPY') return 0.01;
+    if (pair === 'XAUUSD') return 0.01;
+    return 0.0001;
+}
+
+async function getRate(pair) {
+    // Uses exchangerate.host-style pairs via Frankfurter (free, no key) for major FX; gold not supported, fallback to manual.
+    try {
+        if (pair === 'XAUUSD') return null; // no free reliable spot gold endpoint without a key
+        const base = pair.slice(0, 3);
+        const quote = pair.slice(3, 6);
+        const res = await fetch(`https://api.frankfurter.dev/v1/latest?base=${base}&symbols=${quote}`);
+        if (!res.ok) return null;
+        const data = await res.json();
+        return data.rates ? data.rates[quote] : null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function fmt(n, decimals = 2) {
+    if (n === null || n === undefined || isNaN(n)) return '--';
+    return Number(n).toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+
+// ---------- Position Size ----------
+document.getElementById('posPair').addEventListener('change', function () {
+    document.getElementById('posManualPip').disabled = this.value !== 'OTHER';
+});
+
+async function calcPositionSize() {
+    const balance = parseFloat(document.getElementById('posBalance').value) || 0;
+    const riskPct = parseFloat(document.getElementById('posRiskPct').value) || 0;
+    let riskAmt = parseFloat(document.getElementById('posRiskAmt').value);
+    if (!riskAmt) riskAmt = balance * (riskPct / 100);
+
+    const pair = document.getElementById('posPair').value;
+    const slPips = parseFloat(document.getElementById('posSL').value) || 0;
+    const noteEl = document.getElementById('posRateNote');
+    noteEl.textContent = '';
+
+    let pipValuePerLot;
+    if (pair === 'OTHER') {
+        pipValuePerLot = parseFloat(document.getElementById('posManualPip').value) || 10;
+    } else if (pair === 'XAUUSD') {
+        pipValuePerLot = 10; // 1 lot = 100oz, 0.01 move = $1, standard convention used by most brokers ($1/pip/0.01lot ~ $10/std lot for many brokers; adjust manually if your broker differs)
+        noteEl.textContent = 'Gold pip value varies by broker — verify against your broker spec.';
+    } else if (pair === 'USDJPY') {
+        const rate = await getRate('USDJPY');
+        if (rate) {
+            pipValuePerLot = (0.01 * 100000) / rate;
+            noteEl.textContent = `Live USDJPY rate: ${rate}`;
+        } else {
+            pipValuePerLot = 6.7;
+            noteEl.textContent = 'Live rate unavailable — using approximate value.';
+        }
+    } else {
+        pipValuePerLot = 10; // approx for USD-quoted majors at standard lot
+    }
+
+    if (!slPips || slPips <= 0 || !pipValuePerLot) {
+        alert('Please enter a valid stop loss in pips.');
+        return;
+    }
+
+    const lots = riskAmt / (slPips * pipValuePerLot);
+    const units = lots * 100000;
+
+    document.getElementById('rRiskAmt').textContent = '$' + fmt(riskAmt);
+    document.getElementById('rPipValue').textContent = '$' + fmt(pipValuePerLot);
+    document.getElementById('rLots').textContent = fmt(lots, 2);
+    document.getElementById('rUnits').textContent = fmt(units, 0);
+    document.getElementById('posResults').style.display = 'flex';
+}
+
+// ---------- Pip Value ----------
+async function calcPipValue() {
+    const pair = document.getElementById('pipPair').value;
+    const lots = parseFloat(document.getElementById('pipLots').value) || 0;
+
+    let perLot;
+    if (pair === 'USDJPY') {
+        const rate = await getRate('USDJPY');
+        perLot = rate ? (0.01 * 100000) / rate : 6.7;
+    } else if (pair === 'XAUUSD') {
+        perLot = 10;
+    } else {
+        perLot = 10;
+    }
+
+    const total = perLot * lots;
+    document.getElementById('pipPerLot').textContent = '$' + fmt(perLot);
+    document.getElementById('pipTotal').textContent = '$' + fmt(total);
+    document.getElementById('pipResults').style.display = 'flex';
+}
+
+// ---------- Risk / Reward ----------
+function calcRR() {
+    const entry = parseFloat(document.getElementById('rrEntry').value);
+    const sl = parseFloat(document.getElementById('rrSL').value);
+    const tp = parseFloat(document.getElementById('rrTP').value);
+    const dir = document.getElementById('rrDir').value;
+
+    if (isNaN(entry) || isNaN(sl) || isNaN(tp)) {
+        alert('Please fill in entry, stop loss and take profit prices.');
+        return;
+    }
+
+    let riskDist, rewardDist;
+    if (dir === 'buy') {
+        riskDist = entry - sl;
+        rewardDist = tp - entry;
+    } else {
+        riskDist = sl - entry;
+        rewardDist = entry - tp;
+    }
+
+    const ratio = riskDist > 0 ? rewardDist / riskDist : NaN;
+
+    document.getElementById('rrRiskDist').textContent = fmt(Math.abs(riskDist), 5);
+    document.getElementById('rrRewardDist').textContent = fmt(Math.abs(rewardDist), 5);
+    document.getElementById('rrRatio').textContent = isNaN(ratio) ? '--' : '1 : ' + fmt(ratio, 2);
+
+    const noteEl = document.getElementById('rrWinNote');
+    noteEl.style.display = 'block';
+    if (riskDist <= 0 || rewardDist <= 0) {
+        noteEl.className = 'alert alert-warning';
+        noteEl.textContent = 'Check your stop loss / take profit — they don\'t make sense for the selected direction.';
+    } else if (ratio >= 2) {
+        noteEl.className = 'alert alert-success';
+        noteEl.textContent = `Solid R:R of 1:${fmt(ratio,2)}. You only need to win above ${fmt(100/(1+ratio),1)}% of trades to be profitable.`;
+    } else {
+        noteEl.className = 'alert alert-secondary';
+        noteEl.textContent = `R:R of 1:${fmt(ratio,2)} requires a win rate above ${fmt(100/(1+ratio),1)}% to stay profitable.`;
+    }
+
+    document.getElementById('rrResults').style.display = 'flex';
+}
+
+// ---------- Margin ----------
+function calcMargin() {
+    const pair = document.getElementById('mgPair').value;
+    const lots = parseFloat(document.getElementById('mgLots').value) || 0;
+    const leverage = parseFloat(document.getElementById('mgLeverage').value) || 1;
+    const price = parseFloat(document.getElementById('mgPrice').value);
+
+    if (!price) {
+        alert('Please enter the current price for the pair.');
+        return;
+    }
+
+    const contractSize = pair === 'XAUUSD' ? 100 : 100000;
+    const notional = lots * contractSize * price;
+    const required = notional / leverage;
+
+    document.getElementById('mgNotional').textContent = '$' + fmt(notional);
+    document.getElementById('mgRequired').textContent = '$' + fmt(required);
+    document.getElementById('mgResults').style.display = 'flex';
+}
+
+// ---------- Swap ----------
+function calcSwap() {
+    const lots = parseFloat(document.getElementById('swLots').value) || 0;
+    const rate = parseFloat(document.getElementById('swRate').value) || 0;
+    const pipValue = parseFloat(document.getElementById('swPipValue').value) || 0;
+    const nights = parseFloat(document.getElementById('swNights').value) || 0;
+
+    // swap rate given in points; treat 1 point = 0.1 pip cost basis (common MT4/5 convention: points/lot/night * pipValue/10)
+    const perNight = lots * rate * (pipValue / 10);
+    const total = perNight * nights;
+
+    const el = document.getElementById('swTotal');
+    el.textContent = (total >= 0 ? '+$' : '-$') + fmt(Math.abs(total));
+    el.className = 'fs-5 fw-bold ' + (total >= 0 ? 'text-success' : 'text-danger');
+    document.getElementById('swResults').style.display = 'flex';
+}
+</script>
+{% endblock %}
+

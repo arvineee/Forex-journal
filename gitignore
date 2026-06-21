@@ -1,0 +1,65 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# --- Virtual environments ---
+venv/
+env/
+.venv/
+.env/
+
+# --- Environment variables / secrets ---
+.env
+.flaskenv
+*.env
+config_local.py
+
+# --- Flask / instance folder ---
+instance/
+.webassets-cache
+
+# --- Database ---
+*.db
+*.sqlite
+*.sqlite3
+forex_journal.db
+migrations/versions/__pycache__/
+
+# --- Uploads / user content ---
+app/static/uploads/
+uploads/
+*.jpg
+*.jpeg
+*.png
+!app/static/**/*.png
+!app/static/**/*.jpg
+
+# --- Logs ---
+*.log
+logs/
+
+# --- OS / editor junk ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# --- PythonAnywhere / deployment ---
+*.pid
+*.sock
+
+# --- Testing / coverage ---
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- Distribution / packaging ---
+build/
+dist/
+*.egg-info/
+
+# --- Termux specific ---
+.termux/

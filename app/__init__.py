@@ -45,6 +45,7 @@ def create_app(config_class=Config):
         from app.main.routes import bp as main_bp
         from app.account.routes import account_bp
         from app.ai import ai_bp
+        from app.calculator import calculator_bp
     
 
 
@@ -53,6 +54,7 @@ def create_app(config_class=Config):
         app.register_blueprint(trades_bp, url_prefix='/trades')
         app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
         app.register_blueprint(account_bp,url_prefix='/account')
+        app.register_blueprint(calculator_bp, url_prefix='/calculator')
         app.register_blueprint(main_bp)
         
     except Exception as e:
@@ -65,3 +67,4 @@ def create_app(config_class=Config):
             pass
     
     return app
+
