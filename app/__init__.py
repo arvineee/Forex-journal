@@ -14,6 +14,7 @@ migrate = Migrate()
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+    app.config['GEMINI_API_KEY'] = 'your_key_here'
     
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
                 'SQLALCHEMY_DATABASE_URI',
