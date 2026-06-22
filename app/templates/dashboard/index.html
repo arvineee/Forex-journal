@@ -368,5 +368,170 @@ if (equityData.length > 0) {
         </div>
     `;
 }
+
+// ── Win/Loss Distribution ─────────────────────────────────────────────────
+const winLossData = {{ win_loss_data | tojson }};
+(function() {
+    const total = winLossData.wins + winLossData.losses + winLossData.breakeven;
+    const canvas = document.getElementById('winLossChart');
+    if (!canvas) return;
+    if (total === 0) {
+        canvas.parentElement.innerHTML = '<div class="text-center py-4 text-muted"><i class="fas fa-chart-pie fa-2x mb-2"></i><p>No closed trades yet</p></div>';
+        return;
+    }
+    new Chart(canvas.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Wins', 'Losses', 'Breakeven'],
+            datasets: [{
+                data: [winLossData.wins, winLossData.losses, winLossData.breakeven],
+                backgroundColor: ['#198754', '#dc3545', '#6c757d'],
+                borderColor: ['#198754', '#dc3545', '#6c757d'],
+                borderWidth: 2,
+                hoverOffset: 6,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { color: '#ccc', padding: 16, font: { size: 13 } }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            const pct = total > 0 ? (ctx.parsed / total * 100).toFixed(1) : 0;
+                            return ` ${ctx.label}: ${ctx.parsed} (${pct}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+})();
+
+// ── Top Performing Symbols ────────────────────────────────────────────────
+const symbolData = {{ symbol_data | tojson }};
+(function() {
+    const canvas = document.getElementById('symbolPerformanceChart');
+    if (!canvas) return;
+    if (!symbolData.length) {
+        canvas.parentElement.innerHTML = '<div class="text-center py-4 text-muted"><i class="fas fa-coins fa-2x mb-2"></i><p>No symbol data yet</p></div>';
+        return;
+    }
+    const labels   = symbolData.map(s => s.symbol);
+    const pnls     = symbolData.map(s => s.pnl);
+    const colors   = pnls.map(v => v >= 0 ? 'rgba(25, 135, 84, 0.85)' : 'rgba(220, 53, 69, 0.85)');
+    const borders  = pnls.map(v => v >= 0 ? '#198754' : '#dc3545');
+
+    new Chart(canvas.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Total P&L ($)',
+                data: pnls,
+                backgroundColor: colors,
+                borderColor: borders,
+                borderWidth: 1,
+                borderRadius: 4,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        afterLabel: function(ctx) {
+                            const s = symbolData[ctx.dataIndex];
+                            return [`Win rate: ${s.win_rate}%`, `Trades: ${s.count}`];
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { color: 'rgba(255,255,255,0.07)' },
+                    ticks: { color: '#ccc', font: { size: 12 } }
+                },
+                y: {
+                    grid: { color: 'rgba(255,255,255,0.07)' },
+                    ticks: {
+                        color: '#ccc',
+                        callback: v => '$' + v.toFixed(0)
+                    }
+                }
+            }
+        }
+    });
+})();
+
+// ── Trading Hours Heatmap (bar chart) ────────────────────────────────────
+const hoursData = {{ trading_hours_data | tojson }};
+(function() {
+    const container = document.getElementById('tradingHoursHeatmap');
+    if (!container) return;
+    const active = hoursData.filter(h => h.count > 0);
+    if (!active.length) {
+        container.innerHTML = '<div class="text-center py-4 text-muted"><i class="fas fa-clock fa-2x mb-2"></i><p>No trading hour data yet</p></div>';
+        return;
+    }
+    const canvas = document.createElement('canvas');
+    canvas.height = 160;
+    container.appendChild(canvas);
+
+    const labels = hoursData.map(h => h.hour + ':00');
+    const pnls   = hoursData.map(h => h.pnl);
+    const colors = pnls.map(v => v > 0 ? 'rgba(25,135,84,0.8)' : v < 0 ? 'rgba(220,53,69,0.8)' : 'rgba(108,117,125,0.5)');
+
+    new Chart(canvas.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'P&L by Hour',
+                data: pnls,
+                backgroundColor: colors,
+                borderRadius: 3,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            const h = hoursData[ctx.dataIndex];
+                            if (h.count === 0) return ' No trades';
+                            return [
+                                ` P&L: $${h.pnl.toFixed(2)}`,
+                                ` Trades: ${h.count}`,
+                                ` Win rate: ${h.win_rate}%`
+                            ];
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#aaa', font: { size: 10 }, maxRotation: 0 }
+                },
+                y: {
+                    grid: { color: 'rgba(255,255,255,0.07)' },
+                    ticks: { color: '#ccc', callback: v => '$' + v }
+                }
+            }
+        }
+    });
+})();
 </script>
 {% endblock %}
+

@@ -47,6 +47,49 @@ def index():
         
         # Get recent trades
         recent_trades = TradeAnalyzer.get_recent_trades(trades, 5)
+
+        # --- Win/Loss Distribution ---
+        closed = [t for t in trades if t.pnl is not None]
+        wins   = sum(1 for t in closed if t.pnl > 0)
+        losses = sum(1 for t in closed if t.pnl < 0)
+        breakeven = len(closed) - wins - losses
+        win_loss_data = {'wins': wins, 'losses': losses, 'breakeven': breakeven}
+
+        # --- Symbol Performance (top 6 by trade count) ---
+        from collections import defaultdict
+        sym_map = defaultdict(lambda: {'pnl': 0.0, 'count': 0, 'wins': 0})
+        for t in closed:
+            sym_map[t.symbol]['pnl']   += t.pnl
+            sym_map[t.symbol]['count'] += 1
+            sym_map[t.symbol]['wins']  += int(t.pnl > 0)
+        top_symbols = sorted(sym_map.items(), key=lambda x: x[1]['count'], reverse=True)[:6]
+        symbol_data = [
+            {
+                'symbol':   sym,
+                'pnl':      round(s['pnl'], 2),
+                'win_rate': round(s['wins'] / s['count'] * 100, 1) if s['count'] else 0,
+                'count':    s['count'],
+            }
+            for sym, s in top_symbols
+        ]
+
+        # --- Trading Hours Performance (0-23) ---
+        hour_map = defaultdict(lambda: {'pnl': 0.0, 'count': 0, 'wins': 0})
+        for t in closed:
+            if t.entry_time:
+                h = t.entry_time.hour
+                hour_map[h]['pnl']   += t.pnl
+                hour_map[h]['count'] += 1
+                hour_map[h]['wins']  += int(t.pnl > 0)
+        trading_hours_data = [
+            {
+                'hour':     h,
+                'pnl':      round(hour_map[h]['pnl'], 2),
+                'count':    hour_map[h]['count'],
+                'win_rate': round(hour_map[h]['wins'] / hour_map[h]['count'] * 100, 1) if hour_map[h]['count'] else 0,
+            }
+            for h in range(24)
+        ]
         
         # Get current account balance
         current_balance = account_balances[-1].balance if account_balances else 0
@@ -69,7 +112,10 @@ def index():
                              recent_trades=recent_trades,
                              risk_metrics=risk_metrics,  
                              account_metrics=account_metrics,
-                             ai_insights=ai_insights
+                             ai_insights=ai_insights,
+                             win_loss_data=win_loss_data,
+                             symbol_data=symbol_data,
+                             trading_hours_data=trading_hours_data,
                             )
 
     
@@ -99,3 +145,4 @@ def index():
                              recent_trades=[],
                              risk_metrics=default_risk_metrics, 
                              account_metrics=default_account_metrics)  
+
