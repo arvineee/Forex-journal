@@ -100,16 +100,48 @@ def calculate_pnl(direction, entry_price, exit_price, size, symbol):
     
     # ========== JPY PAIRS ==========
     elif 'JPY' in symbol:
-        # From broker data: GBPJPY 0.01 lot, 201.500 to 201.451 (49 pips) = -$0.32
-        # 49 pips × 0.01 lot = -$0.32
-        # 1 pip × 0.01 lot = -$0.0065
-        # Standard lot pip value ≈ $0.65 per pip
+        # For JPY pairs: 1 pip = 0.01 price movement
+        # Pip value per standard lot (in USD) = 1000 / USDJPY_rate
+        #
+        # For USD/JPY: exit_price IS the USDJPY rate → pip_value = 1000 / exit_price
+        # For cross JPY pairs (GBP/JPY, EUR/JPY etc.): estimate USDJPY from the pair
+        #   GBPJPY / GBPUSD ≈ USDJPY  →  pip_value = 1000 / (exit_price / gbpusd_approx)
+        #
+        # Cross-pair pip value approximations (base currency vs USD at typical rates):
+        #   GBP/JPY at ~213 → USDJPY ~157 → pip_value = 1000/157 ≈ 6.37
+        #   EUR/JPY at ~172 → USDJPY ~158 → pip_value = 1000/158 ≈ 6.33
+        #   AUD/JPY at ~102 → USDJPY ~157 → pip_value = 1000/157 ≈ 6.37
+        #
+        # These are derived dynamically below using the base currency multiplier.
         pip_size = 0.01
         pips_moved = price_diff / pip_size
-        
-        # Broker's pip value for JPY pairs (varies by current USD/JPY rate)
-        # Average observed: $0.65-0.70 per pip per standard lot
-        pip_value_per_lot = 0.653  # Calibrated from GBPJPY data: 0.32 / 49 / 0.01
+
+        if symbol == 'USDJPY':
+            # Exact: exit price is the USDJPY rate
+            pip_value_per_lot = 1000.0 / exit_price
+        elif symbol == 'GBPJPY':
+            # USDJPY ≈ GBPJPY / GBPUSD; GBPUSD typically ~1.27–1.35
+            # pip_value = 1000 / (exit_price / 1.31) = 1310 / exit_price
+            pip_value_per_lot = 1310.0 / exit_price
+        elif symbol == 'EURJPY':
+            # EURUSD typically ~1.07–1.12
+            pip_value_per_lot = 1090.0 / exit_price
+        elif symbol == 'AUDJPY':
+            # AUDUSD typically ~0.63–0.67
+            pip_value_per_lot = 650.0 / exit_price
+        elif symbol == 'NZDJPY':
+            # NZDUSD typically ~0.58–0.62
+            pip_value_per_lot = 600.0 / exit_price
+        elif symbol == 'CADJPY':
+            # USDCAD typically ~1.33–1.38 → CADUSD ~0.72
+            pip_value_per_lot = 720.0 / exit_price
+        elif symbol == 'CHFJPY':
+            # USDCHF typically ~0.89–0.92 → CHFUSD ~1.10
+            pip_value_per_lot = 1100.0 / exit_price
+        else:
+            # Unknown JPY cross — safe fallback at USDJPY ~155
+            pip_value_per_lot = 1000.0 / 155.0
+
         pnl = pips_moved * pip_value_per_lot * size
     
     # ========== STANDARD FOREX PAIRS ==========
@@ -261,3 +293,4 @@ def format_percentage(value, decimals=2):
         return f"{value:.{decimals}f}%"
     except (ValueError, TypeError):
         return "-"
+
