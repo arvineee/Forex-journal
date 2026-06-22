@@ -16,6 +16,7 @@ from datetime import datetime, timedelta
 import json
 import pandas as pd  
 from app.trades.forms import TradeForm, ExportForm
+from app.account.routes import auto_update_balance_on_close
 
 @trades_bp.route('/')
 @login_required
@@ -116,6 +117,7 @@ def new_trade():
                                            trade.exit_price, trade.size, trade.symbol)
             trade.pnl = pnl
             trade.pnl_percent = pnl_percent
+            auto_update_balance_on_close(trade)
         
         db.session.add(trade)
         db.session.commit()
@@ -248,6 +250,7 @@ def view_trade(trade_id):
 def edit_trade(trade_id):
     trade = Trade.query.filter_by(id=trade_id, user_id=current_user.id).first_or_404()
     form = TradeForm()
+    already_closed = trade.status == 'closed'
     
     if form.validate_on_submit():
         # Update trade with form data
@@ -272,6 +275,8 @@ def edit_trade(trade_id):
                                            trade.exit_price, trade.size, trade.symbol)
             trade.pnl = pnl
             trade.pnl_percent = pnl_percent
+            if not already_closed:
+                auto_update_balance_on_close(trade)
         else:
             trade.status = 'open'
             trade.pnl = None
@@ -782,3 +787,4 @@ def calculate_summary_statistics(trades):
                 summary['profit_factor'] = float('inf')
 
     return summary
+
