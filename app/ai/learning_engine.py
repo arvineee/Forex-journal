@@ -438,7 +438,7 @@ class ForexAI:
             bins=[0, 1, 4, 24, 168, float("inf")],
             labels=["<1h", "1-4h", "4-24h", "1-7d", ">7d"],
         )
-        stats = df.groupby("bucket").agg(count=("pnl", "count"), avg_pnl=("pnl", "mean"), win_rate=("is_win", "mean"))
+        stats = df.groupby("bucket", observed=True).agg(count=("pnl", "count"), avg_pnl=("pnl", "mean"), win_rate=("is_win", "mean"))
 
         best = stats[stats["count"] >= 3]["avg_pnl"].idxmax() if (stats["count"] >= 3).any() else None
         if best is not None:
@@ -703,7 +703,7 @@ class ForexAI:
                         f"{win_rate:.1f}% WR, avg P&L ${avg_pnl:.2f}"
                     ),
                     "confidence": min(s["count"] / 20, 0.85),
-                    "metadata": {"cluster_id": label, "count": s["count"], "win_rate": win_rate, "avg_pnl": avg_pnl},
+                    "metadata": {"cluster_id": int(label), "count": int(s["count"]), "win_rate": float(win_rate), "avg_pnl": float(avg_pnl)},
                     "recommendation": (
                         f"This recurring setup has {win_rate:.0f}% win rate — "
                         + ("lean into it." if win_rate > 60 else "review or avoid it.")
@@ -1155,4 +1155,5 @@ class ForexAI:
         except Exception as exc:
             logger.error("Failed to log learning session: %s", exc)
             db.session.rollback()
+
 
