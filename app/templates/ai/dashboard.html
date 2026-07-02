@@ -197,6 +197,42 @@
             margin-top: 0.3rem;
         }
 
+        .trades-mini-table {
+            font-size: 0.78rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .trades-mini-table th {
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #6c757d;
+            border-top: none;
+            font-weight: 600;
+            padding: 0.4rem 0.6rem;
+        }
+
+        .trades-mini-table td {
+            padding: 0.4rem 0.6rem;
+            vertical-align: middle;
+        }
+
+        .trades-mini-table tbody tr:hover {
+            background: rgba(0,0,0,0.03);
+        }
+
+        .metadata-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #495057;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            margin-top: 0.6rem;
+            margin-bottom: 0.2rem;
+        }
+
         .empty-state {
             text-align: center;
             padding: 3rem 1rem;
@@ -313,6 +349,49 @@
     </style>
 </head>
 <body>
+    {% macro render_trades_table(trades) %}
+    <div class="table-responsive mt-2">
+        <table class="table table-sm trades-mini-table mb-0">
+            <thead>
+                <tr>
+                    <th>Trade</th>
+                    <th>Score</th>
+                    <th>PnL</th>
+                    <th>Gap (min)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in trades %}
+                <tr>
+                    <td>#{{ t.trade_id }}</td>
+                    <td>{{ t.score }}</td>
+                    <td class="{% if t.pnl is number %}{{ 'text-success' if t.pnl > 0 else 'text-danger' }}{% endif %}">
+                        {% if t.pnl is number %}{{ "%.2f"|format(t.pnl) }}{% else %}{{ t.pnl }}{% endif %}
+                    </td>
+                    <td>{{ t.time_gap_minutes if t.time_gap_minutes is not none else '—' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endmacro %}
+
+    {% macro render_metadata_value(key, value) %}
+        {% if key == 'trades' and value is iterable and value is not string and value|length > 0 and value[0] is mapping %}
+            <div class="metadata-label">{{ key|replace('_', ' ')|title }} ({{ value|length }})</div>
+            {{ render_trades_table(value) }}
+        {% else %}
+            <span class="metadata-chip">
+                <strong>{{ key|replace('_', ' ')|title }}:</strong>
+                {% if value is number %}
+                    {{ "%.2f"|format(value) }}
+                {% else %}
+                    {{ value }}
+                {% endif %}
+            </span>
+        {% endif %}
+    {% endmacro %}
+
     <div class="container-fluid py-4">
         <!-- Header -->
         <div class="dashboard-header">
@@ -426,14 +505,7 @@
                             {% if insight.metadata %}
                             <div class="insight-metadata">
                                 {% for key, value in insight.metadata.items() %}
-                                    <span class="metadata-chip">
-                                        <strong>{{ key|replace('_', ' ')|title }}:</strong> 
-                                        {% if value is number %}
-                                            {{ "%.2f"|format(value) }}
-                                        {% else %}
-                                            {{ value }}
-                                        {% endif %}
-                                    </span>
+                                    {{ render_metadata_value(key, value) }}
                                 {% endfor %}
                             </div>
                             {% endif %}
@@ -570,14 +642,7 @@
                                     {% if insight.metadata %}
                                     <div class="mt-2">
                                         {% for key, value in insight.metadata.items() if key not in ['interpretation'] %}
-                                        <span class="metadata-chip">
-                                            <strong>{{ key|replace('_', ' ')|title }}:</strong> 
-                                            {% if value is number %}
-                                                {{ "%.2f"|format(value) }}
-                                            {% else %}
-                                                {{ value }}
-                                            {% endif %}
-                                        </span>
+                                            {{ render_metadata_value(key, value) }}
                                         {% endfor %}
                                     </div>
                                     {% endif %}
@@ -677,14 +742,7 @@
                                     {% if insight.metadata %}
                                     <div class="mt-2">
                                         {% for key, value in insight.metadata.items() %}
-                                        <span class="metadata-chip">
-                                            <strong>{{ key|replace('_', ' ')|title }}:</strong> 
-                                            {% if value is number %}
-                                                {{ "%.2f"|format(value) }}
-                                            {% else %}
-                                                {{ value }}
-                                            {% endif %}
-                                        </span>
+                                            {{ render_metadata_value(key, value) }}
                                         {% endfor %}
                                     </div>
                                     {% endif %}
@@ -918,3 +976,4 @@
     </script>
 </body>
 </html>
+
