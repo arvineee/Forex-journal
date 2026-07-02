@@ -35,7 +35,7 @@
                         </div>
 
                         <!-- Password -->
-                        <div class="mb-4">
+                        <div class="mb-2">
                             <label for="password" class="form-label">
                                 <i class="fas fa-lock me-2"></i>Password
                             </label>
@@ -47,6 +47,13 @@
                                     {% endfor %}
                                 </div>
                             {% endif %}
+                        </div>
+
+                        <!-- Forgot Password Link -->
+                        <div class="mb-4 text-end">
+                            <a href="{{ url_for('auth.reset_request') }}" class="text-primary text-decoration-none small">
+                                Forgot password?
+                            </a>
                         </div>
 
                         <!-- Remember Me -->
@@ -78,3 +85,4 @@
     </div>
 </div>
 {% endblock %}
+

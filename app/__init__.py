@@ -4,12 +4,14 @@ from flask_login import LoginManager
 from flask_migrate import Migrate
 from config import Config
 import os
+from flask_mail import Mail
 
 db = SQLAlchemy()
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
 login_manager.login_message_category = 'info'
 migrate = Migrate()
+mail = Mail() 
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -25,6 +27,7 @@ def create_app(config_class=Config):
     db.init_app(app)
     login_manager.init_app(app)
     migrate.init_app(app, db)
+    mail.init_app(app) 
 
     @app.template_filter('datetimeformat')
     def datetimeformat(value, format='%Y-%m-%d %H:%M'):
