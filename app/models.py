@@ -18,7 +18,7 @@ class User(UserMixin, db.Model):
     trading_strategies = db.relationship('TradingStrategy', backref='user', lazy='dynamic', cascade='all, delete-orphan')
     trading_goals = db.relationship('TradingGoal', backref='user', lazy='dynamic', cascade='all, delete-orphan')
     trade_setups = db.relationship('TradeSetup', backref='user', lazy='dynamic', cascade='all, delete-orphan')
-    is_admin = db.Column(db.Boolean, default=False, nullable=False)
+    is_admin = db.Column(db.Boolean, default=False, nullable=True)
     last_login_at = db.Column(db.DateTime)
     login_count = db.Column(db.Integer, default=0, nullable=False)
     
