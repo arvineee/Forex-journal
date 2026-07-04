@@ -154,6 +154,13 @@
                             <i class="fas fa-calculator me-1"></i>Calculator
                         </a>
                     </li>
+                    {% if current_user.is_admin %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.users') }}">
+                            <i class="fas fa-user-shield me-1"></i>Admin
+                        </a>
+                    </li>
+                    {% endif %}
                     {% endif %}
                     
                     <li><a class="dropdown-item" href="{{ url_for('trades.advanced_export') }}">
@@ -171,6 +178,11 @@
                             <li><a class="dropdown-item" href="{{ url_for('trades.export_trades') }}">
                                 <i class="fas fa-download me-2"></i>Export Trades
                             </a></li>
+                            {% if current_user.is_admin %}
+                            <li><a class="dropdown-item" href="{{ url_for('admin.users') }}">
+                                <i class="fas fa-user-shield me-2"></i>Admin Panel
+                            </a></li>
+                            {% endif %}
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
                                 <i class="fas fa-sign-out-alt me-2"></i>Logout
