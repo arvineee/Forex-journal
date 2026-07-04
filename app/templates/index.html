@@ -2,82 +2,229 @@
 
 {% block title %}Welcome - Forex Journal{% endblock %}
 
+{% block styles %}
+<style>
+    :root {
+        --tj-bg:        #0B0E14;
+        --tj-panel:     #12161F;
+        --tj-panel-alt: #171C27;
+        --tj-hairline:  #232838;
+        --tj-amber:     #E8A33D;
+        --tj-amber-dim: rgba(232, 163, 61, 0.14);
+        --tj-success:   #2FBF71;
+        --tj-danger:    #E5484D;
+        --tj-text:      #E7E9EE;
+        --tj-muted:     #8992A6;
+    }
+
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+    body {
+        background: var(--tj-bg) !important;
+        font-family: 'Inter', -apple-system, sans-serif;
+    }
+
+    main.container-fluid { max-width: 1200px; }
+
+    /* ---- Hero ---- */
+    .wj-hero {
+        padding: 64px 0 48px;
+        text-align: center;
+    }
+
+    .wj-eyebrow {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.78rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--tj-amber);
+        margin-bottom: 18px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .wj-eyebrow .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--tj-success);
+        box-shadow: 0 0 6px rgba(47,191,113,0.7);
+        animation: wj-pulse 1.8s ease-in-out infinite;
+    }
+
+    @keyframes wj-pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+    }
+
+    .wj-hero h1 {
+        font-weight: 700;
+        font-size: clamp(2.1rem, 5vw, 3.2rem);
+        color: var(--tj-text);
+        letter-spacing: -0.02em;
+        margin-bottom: 16px;
+    }
+
+    .wj-hero h1 .accent { color: var(--tj-amber); }
+
+    .wj-hero p.lead {
+        color: var(--tj-muted);
+        font-size: 1.05rem;
+        max-width: 560px;
+        margin: 0 auto 32px;
+    }
+
+    .btn-wj-primary {
+        background: var(--tj-amber);
+        border: none;
+        color: #17130A;
+        font-weight: 600;
+        padding: 0.65rem 1.5rem;
+        transition: filter 0.15s ease;
+    }
+    .btn-wj-primary:hover { filter: brightness(1.1); color: #17130A; }
+
+    .btn-wj-secondary {
+        background: transparent;
+        border: 1px solid var(--tj-hairline);
+        color: var(--tj-text);
+        font-weight: 500;
+        padding: 0.65rem 1.5rem;
+        transition: border-color 0.15s ease;
+    }
+    .btn-wj-secondary:hover {
+        background: var(--tj-panel-alt);
+        border-color: var(--tj-amber);
+        color: var(--tj-text);
+    }
+
+    /* ---- Feature panels ---- */
+    .wj-features { margin-top: 56px; }
+
+    .wj-panel {
+        background: var(--tj-panel);
+        border: 1px solid var(--tj-hairline);
+        border-radius: 6px;
+        padding: 28px 24px;
+        height: 100%;
+        transition: border-color 0.15s ease;
+    }
+    .wj-panel:hover { border-color: rgba(232, 163, 61, 0.35); }
+
+    .wj-panel .wj-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 16px;
+        font-size: 1.1rem;
+    }
+    .wj-panel .wj-icon.amber   { background: rgba(232,163,61,0.14); color: var(--tj-amber); }
+    .wj-panel .wj-icon.success { background: rgba(47,191,113,0.14); color: var(--tj-success); }
+    .wj-panel .wj-icon.info    { background: rgba(76,141,255,0.14); color: #4C8DFF; }
+
+    .wj-panel h5 {
+        color: var(--tj-text);
+        font-weight: 600;
+        font-size: 1rem;
+        margin-bottom: 8px;
+    }
+    .wj-panel p {
+        color: var(--tj-muted);
+        font-size: 0.9rem;
+        margin: 0;
+    }
+
+    /* ---- Footer strip ---- */
+    .wj-strip {
+        margin-top: 56px;
+        background: var(--tj-panel);
+        border: 1px solid var(--tj-hairline);
+        border-radius: 6px;
+        padding: 16px 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--tj-muted);
+        font-size: 0.88rem;
+    }
+    .wj-strip i { color: var(--tj-amber); }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid py-5">
+<div class="container-fluid">
     <div class="row justify-content-center">
-        <div class="col-lg-8 text-center">
-            <!-- Hero Section -->
-            <div class="hero-section mb-5">
-                <i class="fas fa-chart-line display-1 text-primary mb-4"></i>
-                <h1 class="display-4 fw-bold mb-3">Forex Trading Journal</h1>
-                <p class="lead text-muted mb-4">
-                    Track, analyze, and improve your trading performance with intelligent insights
+        <div class="col-lg-9">
+
+            <!-- Hero -->
+            <div class="wj-hero">
+                <div class="wj-eyebrow">
+                    <span class="dot"></span>Built for discretionary &amp; SMC traders
+                </div>
+                <h1>Trade with discipline.<br><span class="accent">Journal</span> with precision.</h1>
+                <p class="lead">
+                    Log every setup, screenshot every chart, and let the data show you
+                    what your instincts can't &mdash; win rate by session, symbol, and hour.
                 </p>
-                
+
                 {% if not current_user.is_authenticated %}
-                <div class="d-grid gap-2 d-md-flex justify-content-center">
-                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-4 me-md-2">
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-wj-primary">
                         <i class="fas fa-rocket me-2"></i>Start Journaling
                     </a>
-                    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary btn-lg px-4">
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-wj-secondary">
                         <i class="fas fa-sign-in-alt me-2"></i>Sign In
                     </a>
                 </div>
                 {% else %}
-                <div class="d-grid gap-2 d-md-flex justify-content-center">
-                    <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary btn-lg px-4 me-md-2">
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <a href="{{ url_for('dashboard.index') }}" class="btn btn-wj-primary">
                         <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
                     </a>
-                    <a href="{{ url_for('trades.new_trade') }}" class="btn btn-success btn-lg px-4">
+                    <a href="{{ url_for('trades.new_trade') }}" class="btn btn-wj-secondary">
                         <i class="fas fa-plus me-2"></i>New Trade
                     </a>
                 </div>
                 {% endif %}
             </div>
 
-            <!-- Features Grid -->
-            <div class="row g-4 mt-5">
+            <!-- Features -->
+            <div class="row g-4 wj-features">
                 <div class="col-md-4">
-                    <div class="card metric-card h-100">
-                        <div class="card-body text-center p-4">
-                            <i class="fas fa-camera fa-2x text-primary mb-3"></i>
-                            <h5>Chart Screenshots</h5>
-                            <p class="text-muted">Upload multiple chart images per trade with annotation tools</p>
-                        </div>
+                    <div class="wj-panel">
+                        <div class="wj-icon amber"><i class="fas fa-camera"></i></div>
+                        <h5>Chart Screenshots</h5>
+                        <p>Attach multiple annotated charts to every trade &mdash; entry, exit, and setup context, all in one place.</p>
                     </div>
                 </div>
-                
                 <div class="col-md-4">
-                    <div class="card metric-card h-100">
-                        <div class="card-body text-center p-4">
-                            <i class="fas fa-brain fa-2x text-info mb-3"></i>
-                            <h5>Emotional Tracking</h5>
-                            <p class="text-muted">Monitor your emotional state and identify patterns</p>
-                        </div>
+                    <div class="wj-panel">
+                        <div class="wj-icon info"><i class="fas fa-brain"></i></div>
+                        <h5>Emotional Tracking</h5>
+                        <p>Tag the emotional state behind each trade and spot the patterns that quietly cost you money.</p>
                     </div>
                 </div>
-                
                 <div class="col-md-4">
-                    <div class="card metric-card h-100">
-                        <div class="card-body text-center p-4">
-                            <i class="fas fa-chart-bar fa-2x text-success mb-3"></i>
-                            <h5>Smart Analytics</h5>
-                            <p class="text-muted">AI-powered insights and performance metrics</p>
-                        </div>
+                    <div class="wj-panel">
+                        <div class="wj-icon success"><i class="fas fa-chart-bar"></i></div>
+                        <h5>Smart Analytics</h5>
+                        <p>AI-powered insights surface your best sessions, symbols, and setups &mdash; not just totals.</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Mobile Optimized -->
-            <div class="row mt-5">
-                <div class="col-12">
-                    <div class="alert alert-info text-center">
-                        <i class="fas fa-mobile-alt me-2"></i>
-                        <strong>Mobile-Friendly:</strong> Perfect for trading on the go with Termux
-                    </div>
-                </div>
+            <!-- Mobile strip -->
+            <div class="wj-strip">
+                <i class="fas fa-mobile-alt"></i>
+                <span><strong style="color: var(--tj-text);">Mobile-friendly.</strong> Built to run smoothly on Termux &mdash; log trades right from your phone, on the go.</span>
             </div>
+
         </div>
     </div>
 </div>
 {% endblock %}
+

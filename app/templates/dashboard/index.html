@@ -1,0 +1,738 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Forex Journal{% endblock %}
+
+{% block styles %}
+<style>
+    /* ============================================================
+       Trading Terminal Design Tokens (scoped to this page)
+       ============================================================ */
+    :root {
+        --tj-bg:        #0B0E14;
+        --tj-panel:     #12161F;
+        --tj-panel-alt: #171C27;
+        --tj-hairline:  #232838;
+        --tj-amber:     #E8A33D;
+        --tj-amber-dim: rgba(232, 163, 61, 0.14);
+        --tj-success:   #2FBF71;
+        --tj-danger:    #E5484D;
+        --tj-text:      #E7E9EE;
+        --tj-muted:     #8992A6;
+    }
+
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+    body {
+        background: var(--tj-bg) !important;
+        font-family: 'Inter', -apple-system, sans-serif;
+    }
+
+    main.container-fluid { max-width: 1400px; }
+
+    .tj-mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* ---- Session Ticker (signature element) ---- */
+    .session-ticker {
+        background: var(--tj-panel);
+        border: 1px solid var(--tj-hairline);
+        border-radius: 6px;
+        padding: 10px 18px;
+        margin-bottom: 24px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0;
+    }
+
+    .session-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 18px;
+        border-right: 1px solid var(--tj-hairline);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.78rem;
+        letter-spacing: 0.03em;
+    }
+
+    .session-item:last-child { border-right: none; }
+
+    .session-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--tj-hairline);
+        flex-shrink: 0;
+    }
+
+    .session-dot.is-open { background: var(--tj-success); box-shadow: 0 0 6px rgba(47, 191, 113, 0.6); }
+    .session-dot.is-killzone {
+        background: var(--tj-amber);
+        box-shadow: 0 0 8px rgba(232, 163, 61, 0.8);
+        animation: tj-pulse 1.8s ease-in-out infinite;
+    }
+
+    @keyframes tj-pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.45; }
+    }
+
+    .session-name { color: var(--tj-text); font-weight: 500; }
+    .session-status { color: var(--tj-muted); }
+    .session-status.open-text { color: var(--tj-success); }
+
+    .killzone-flag {
+        margin-left: auto;
+        font-size: 0.72rem;
+        color: var(--tj-amber);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 4px 10px;
+        border: 1px solid rgba(232, 163, 61, 0.35);
+        border-radius: 4px;
+        background: var(--tj-amber-dim);
+    }
+
+    /* ---- Page header ---- */
+    .tj-header h1 {
+        font-weight: 600;
+        color: var(--tj-text);
+        letter-spacing: -0.01em;
+    }
+    .tj-header p { color: var(--tj-muted); }
+
+    .btn-tj-primary {
+        background: var(--tj-amber);
+        border: none;
+        color: #17130A;
+        font-weight: 600;
+        transition: filter 0.15s ease;
+    }
+    .btn-tj-primary:hover { filter: brightness(1.1); color: #17130A; }
+
+    /* ---- Ticker-strip metrics (quote board) ---- */
+    .metric-strip {
+        background: var(--tj-panel);
+        border: 1px solid var(--tj-hairline);
+        border-radius: 6px;
+        display: flex;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+        overflow: hidden;
+    }
+
+    .metric-cell {
+        flex: 1 1 180px;
+        padding: 18px 20px;
+        border-right: 1px solid var(--tj-hairline);
+        position: relative;
+    }
+    .metric-cell:last-child { border-right: none; }
+
+    .metric-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--tj-muted);
+        margin-bottom: 6px;
+    }
+
+    .metric-value {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--tj-text);
+        line-height: 1;
+    }
+
+    .metric-value.pos { color: var(--tj-success); }
+    .metric-value.neg { color: var(--tj-danger); }
+    .metric-value.accent { color: var(--tj-amber); }
+
+    .metric-cell .metric-actions { margin-top: 10px; }
+    .metric-cell .metric-actions a {
+        font-size: 0.72rem;
+        text-decoration: none;
+        color: var(--tj-muted);
+        border: 1px solid var(--tj-hairline);
+        padding: 3px 8px;
+        border-radius: 4px;
+        margin-right: 6px;
+    }
+    .metric-cell .metric-actions a:hover { border-color: var(--tj-amber); color: var(--tj-amber); }
+
+    /* ---- Panels (replaces bootstrap .card look on this page) ---- */
+    .tj-panel {
+        background: var(--tj-panel);
+        border: 1px solid var(--tj-hairline);
+        border-radius: 6px;
+    }
+
+    .tj-panel-header {
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--tj-hairline);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .tj-panel-header .tj-title {
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--tj-muted);
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .tj-panel-body { padding: 20px; }
+
+    /* ---- Risk metric mini-stats ---- */
+    .risk-stat { text-align: center; }
+    .risk-stat .val {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+    .risk-stat .lbl {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--tj-muted);
+    }
+
+    /* ---- Recent trades list ---- */
+    .trade-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 20px;
+        border-bottom: 1px solid var(--tj-hairline);
+        text-decoration: none;
+        color: var(--tj-text);
+        transition: background 0.12s ease;
+    }
+    .trade-row:last-child { border-bottom: none; }
+    .trade-row:hover { background: var(--tj-panel-alt); color: var(--tj-text); }
+
+    .trade-symbol { font-weight: 600; font-size: 0.92rem; }
+    .trade-dir {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.68rem;
+        letter-spacing: 0.05em;
+        padding: 1px 6px;
+        border-radius: 3px;
+        margin-right: 6px;
+    }
+    .trade-dir.buy { background: rgba(47,191,113,0.15); color: var(--tj-success); }
+    .trade-dir.sell { background: rgba(229,72,77,0.15); color: var(--tj-danger); }
+
+    .trade-pnl { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+
+    /* ---- Empty states ---- */
+    .tj-empty {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--tj-muted);
+    }
+    .tj-empty i { color: var(--tj-hairline); }
+
+    @media (max-width: 767px) {
+        .metric-cell { flex: 1 1 45%; border-bottom: 1px solid var(--tj-hairline); }
+        .session-item { padding: 4px 10px; font-size: 0.7rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- Session Ticker -->
+    <div class="session-ticker" id="sessionTicker">
+        <div class="session-item"><span class="session-dot" data-session="sydney"></span><span class="session-name">Sydney</span><span class="session-status" data-status="sydney">—</span></div>
+        <div class="session-item"><span class="session-dot" data-session="tokyo"></span><span class="session-name">Tokyo</span><span class="session-status" data-status="tokyo">—</span></div>
+        <div class="session-item"><span class="session-dot" data-session="london"></span><span class="session-name">London</span><span class="session-status" data-status="london">—</span></div>
+        <div class="session-item"><span class="session-dot" data-session="newyork"></span><span class="session-name">New York</span><span class="session-status" data-status="newyork">—</span></div>
+        <div class="killzone-flag" id="killzoneFlag" style="display:none;">Kill Zone Active</div>
+    </div>
+
+    <!-- Page Header -->
+    <div class="row mb-4 tj-header">
+        <div class="col">
+            <h1 class="h3 mb-1">Dashboard</h1>
+            <p class="mb-0 small">Your trading performance overview</p>
+        </div>
+        <div class="col-auto">
+            <a href="{{ url_for('trades.new_trade') }}" class="btn btn-tj-primary">
+                <i class="fas fa-plus me-2"></i>New Trade
+            </a>
+        </div>
+    </div>
+
+    <!-- Key Metrics (quote-board strip) -->
+    <div class="metric-strip">
+        <div class="metric-cell">
+            <div class="metric-label">Total Trades</div>
+            <div class="metric-value">{{ metrics.total_trades }}</div>
+        </div>
+        <div class="metric-cell">
+            <div class="metric-label">Account Balance</div>
+            <div class="metric-value accent">${{ "%.2f"|format(current_balance) }}</div>
+            <div class="metric-actions">
+                <a href="{{ url_for('account.balance_history') }}">Manage</a>
+                <a href="{{ url_for('account.add_balance') }}"><i class="fas fa-plus"></i></a>
+            </div>
+        </div>
+        <div class="metric-cell">
+            <div class="metric-label">Win Rate</div>
+            <div class="metric-value">{{ "%.1f"|format(metrics.win_rate) }}%</div>
+        </div>
+        <div class="metric-cell">
+            <div class="metric-label">Total P&amp;L</div>
+            <div class="metric-value {{ 'pos' if metrics.total_pnl > 0 else 'neg' if metrics.total_pnl < 0 else '' }}">
+                ${{ "%.2f"|format(metrics.total_pnl) }}
+            </div>
+        </div>
+        <div class="metric-cell">
+            <div class="metric-label">Profit Factor</div>
+            <div class="metric-value">{{ "%.2f"|format(metrics.profit_factor) if metrics.profit_factor != float('inf') else '∞' }}</div>
+        </div>
+    </div>
+
+    <!-- Performance Widgets -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="tj-panel h-100">
+                <div class="tj-panel-header"><p class="tj-title">Win / Loss Distribution</p></div>
+                <div class="tj-panel-body">
+                    <canvas id="winLossChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="tj-panel h-100">
+                <div class="tj-panel-header"><p class="tj-title">Top Performing Symbols</p></div>
+                <div class="tj-panel-body">
+                    <canvas id="symbolPerformanceChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trading Hours Heatmap -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="tj-panel">
+                <div class="tj-panel-header"><p class="tj-title">Trading Hours Performance</p></div>
+                <div class="tj-panel-body">
+                    <div id="tradingHoursHeatmap"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Risk Metrics -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="tj-panel h-100">
+                <div class="tj-panel-header"><p class="tj-title">Risk Metrics</p></div>
+                <div class="tj-panel-body">
+                    <div class="row">
+                        <div class="col-6 mb-3 risk-stat">
+                            <div class="val" style="color: var(--tj-text);">{{ risk_metrics.max_win_streak }}</div>
+                            <div class="lbl">Max Win Streak</div>
+                        </div>
+                        <div class="col-6 mb-3 risk-stat">
+                            <div class="val" style="color: var(--tj-amber);">{{ risk_metrics.max_loss_streak }}</div>
+                            <div class="lbl">Max Loss Streak</div>
+                        </div>
+                        <div class="col-6 risk-stat">
+                            <div class="val" style="color: var(--tj-success);">{{ "%.2f"|format(risk_metrics.avg_risk_per_trade) }}%</div>
+                            <div class="lbl">Avg Risk/Trade</div>
+                        </div>
+                        <div class="col-6 risk-stat">
+                            <div class="val" style="color: var(--tj-text);">{{ "%.2f"|format(risk_metrics.expectancy) }}</div>
+                            <div class="lbl">Expectancy</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts and Recent Trades -->
+    <div class="row g-4">
+        <!-- Equity Curve -->
+        <div class="col-lg-8">
+            <div class="tj-panel h-100">
+                <div class="tj-panel-header"><p class="tj-title">Equity Curve</p></div>
+                <div class="tj-panel-body">
+                    <canvas id="equityChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Trades & Quick Stats -->
+        <div class="col-lg-4">
+            <!-- Recent Trades -->
+            <div class="tj-panel mb-4">
+                <div class="tj-panel-header"><p class="tj-title">Recent Trades</p></div>
+                <div class="p-0">
+                    {% if recent_trades %}
+                    {% for trade in recent_trades %}
+                    <a href="{{ url_for('trades.view_trade', trade_id=trade.id) }}" class="trade-row">
+                        <div>
+                            <div class="trade-symbol">{{ trade.symbol }}</div>
+                            <small style="color: var(--tj-muted);">
+                                <span class="trade-dir {{ 'buy' if trade.direction == 'BUY' else 'sell' }}">{{ trade.direction }}</span>
+                                {{ "%.5f"|format(trade.entry_price) }}
+                            </small>
+                        </div>
+                        <div class="text-end">
+                            <div class="trade-pnl {{ 'pos' if trade.pnl and trade.pnl > 0 else 'neg' if trade.pnl and trade.pnl < 0 else '' }}" style="color: {{ 'var(--tj-success)' if trade.pnl and trade.pnl > 0 else 'var(--tj-danger)' if trade.pnl and trade.pnl < 0 else 'var(--tj-muted)' }};">
+                                {{ "$%.2f"|format(trade.pnl) if trade.pnl else '-' }}
+                            </div>
+                            <small style="color: var(--tj-muted);">{{ trade.entry_time.strftime('%m/%d') }}</small>
+                        </div>
+                    </a>
+                    {% endfor %}
+                    {% else %}
+                    <div class="tj-empty">
+                        <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                        <p class="mb-2">No trades yet</p>
+                        <a href="{{ url_for('trades.new_trade') }}" class="btn btn-sm btn-tj-primary">Add Your First Trade</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="tj-panel">
+                <div class="tj-panel-header"><p class="tj-title">Performance</p></div>
+                <div class="tj-panel-body">
+                    <div class="row">
+                        <div class="col-6 mb-3 risk-stat">
+                            <div class="val" style="color: {{ 'var(--tj-success)' if metrics.largest_win > 0 else 'var(--tj-muted)' }};">${{ "%.2f"|format(metrics.largest_win) }}</div>
+                            <div class="lbl">Largest Win</div>
+                        </div>
+                        <div class="col-6 mb-3 risk-stat">
+                            <div class="val" style="color: {{ 'var(--tj-danger)' if metrics.largest_loss < 0 else 'var(--tj-muted)' }};">${{ "%.2f"|format(metrics.largest_loss) }}</div>
+                            <div class="lbl">Largest Loss</div>
+                        </div>
+                        <div class="col-6 risk-stat">
+                            <div class="val" style="color: var(--tj-text);">{{ metrics.winning_trades }}</div>
+                            <div class="lbl">Winning Trades</div>
+                        </div>
+                        <div class="col-6 risk-stat">
+                            <div class="val" style="color: var(--tj-text);">{{ metrics.losing_trades }}</div>
+                            <div class="lbl">Losing Trades</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── Session Ticker (Sydney / Tokyo / London / New York, UTC-based) ────────
+(function() {
+    const sessions = {
+        sydney:   { start: 22, end: 7  }, // wraps midnight UTC
+        tokyo:    { start: 0,  end: 9  },
+        london:   { start: 8,  end: 17 },
+        newyork:  { start: 13, end: 22 }
+    };
+
+    function isOpen(s, hourUTC) {
+        if (s.start > s.end) { // wraps past midnight
+            return hourUTC >= s.start || hourUTC < s.end;
+        }
+        return hourUTC >= s.start && hourUTC < s.end;
+    }
+
+    // Forex market is closed globally from Friday 22:00 UTC to Sunday 22:00 UTC
+    function isMarketClosedWeekend(now) {
+        const day = now.getUTCDay(); // 0=Sun, 5=Fri, 6=Sat
+        const hour = now.getUTCHours();
+        if (day === 6) return true;                 // all Saturday
+        if (day === 0 && hour < 22) return true;     // Sunday before 22:00 UTC
+        if (day === 5 && hour >= 22) return true;    // Friday after 22:00 UTC
+        return false;
+    }
+
+    function update() {
+        const now = new Date();
+        const hourUTC = now.getUTCHours();
+        const weekendClosed = isMarketClosedWeekend(now);
+        let londonOpen = !weekendClosed && isOpen(sessions.london, hourUTC);
+        let nyOpen = !weekendClosed && isOpen(sessions.newyork, hourUTC);
+        const killzone = londonOpen && nyOpen;
+
+        Object.keys(sessions).forEach(key => {
+            const open = !weekendClosed && isOpen(sessions[key], hourUTC);
+            const dot = document.querySelector(`.session-dot[data-session="${key}"]`);
+            const status = document.querySelector(`.session-status[data-status="${key}"]`);
+            if (!dot || !status) return;
+
+            dot.classList.remove('is-open', 'is-killzone');
+            if (key === 'london' || key === 'newyork') {
+                if (killzone) dot.classList.add('is-killzone');
+                else if (open) dot.classList.add('is-open');
+            } else if (open) {
+                dot.classList.add('is-open');
+            }
+            status.textContent = open ? 'Open' : 'Closed';
+            status.classList.toggle('open-text', open);
+        });
+
+        const flag = document.getElementById('killzoneFlag');
+        if (flag) flag.style.display = killzone ? 'inline-block' : 'none';
+
+        const ticker = document.getElementById('sessionTicker');
+        let weekendNote = document.getElementById('weekendNote');
+        if (weekendClosed) {
+            if (!weekendNote) {
+                weekendNote = document.createElement('div');
+                weekendNote.id = 'weekendNote';
+                weekendNote.className = 'killzone-flag';
+                weekendNote.style.color = 'var(--tj-muted)';
+                weekendNote.style.borderColor = 'var(--tj-hairline)';
+                weekendNote.style.background = 'transparent';
+                weekendNote.textContent = 'Market Closed \u2014 Weekend';
+                ticker.appendChild(weekendNote);
+            }
+        } else if (weekendNote) {
+            weekendNote.remove();
+        }
+    }
+
+    update();
+    setInterval(update, 60000);
+})();
+
+// ── Equity Curve ──────────────────────────────────────────────────────────
+const equityData = {{ equity_data | tojson }};
+if (equityData.length > 0) {
+    const ctx = document.getElementById('equityChart').getContext('2d');
+    const dates = equityData.map(item => new Date(item.date).toLocaleDateString());
+    const equity = equityData.map(item => item.equity);
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [{
+                label: 'Equity',
+                data: equity,
+                borderColor: '#E8A33D',
+                backgroundColor: 'rgba(232, 163, 61, 0.08)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.35,
+                pointRadius: 0,
+                pointHoverRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { mode: 'index', intersect: false }
+            },
+            scales: {
+                x: {
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { color: '#8992A6', font: { family: 'JetBrains Mono', size: 10 } }
+                },
+                y: {
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: {
+                        color: '#8992A6',
+                        font: { family: 'JetBrains Mono', size: 10 },
+                        callback: function(value) { return '$' + value; }
+                    }
+                }
+            }
+        }
+    });
+} else {
+    document.getElementById('equityChart').parentElement.innerHTML = `
+        <div class="tj-empty">
+            <i class="fas fa-chart-line fa-3x mb-3 d-block"></i>
+            <p class="mb-3">No closed trades yet to show equity curve</p>
+            <a href="{{ url_for('trades.new_trade') }}" class="btn btn-tj-primary">Add Your First Trade</a>
+        </div>
+    `;
+}
+
+// ── Win/Loss Distribution ─────────────────────────────────────────────────
+const winLossData = {{ win_loss_data | tojson }};
+(function() {
+    const total = winLossData.wins + winLossData.losses + winLossData.breakeven;
+    const canvas = document.getElementById('winLossChart');
+    if (!canvas) return;
+    if (total === 0) {
+        canvas.parentElement.innerHTML = '<div class="tj-empty"><i class="fas fa-chart-pie fa-2x mb-2 d-block"></i><p class="mb-0">No closed trades yet</p></div>';
+        return;
+    }
+    new Chart(canvas.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Wins', 'Losses', 'Breakeven'],
+            datasets: [{
+                data: [winLossData.wins, winLossData.losses, winLossData.breakeven],
+                backgroundColor: ['#2FBF71', '#E5484D', '#3A4051'],
+                borderColor: ['#2FBF71', '#E5484D', '#3A4051'],
+                borderWidth: 2,
+                hoverOffset: 6,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { color: '#8992A6', padding: 16, font: { size: 12 } }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            const pct = total > 0 ? (ctx.parsed / total * 100).toFixed(1) : 0;
+                            return ` ${ctx.label}: ${ctx.parsed} (${pct}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+})();
+
+// ── Top Performing Symbols ────────────────────────────────────────────────
+const symbolData = {{ symbol_data | tojson }};
+(function() {
+    const canvas = document.getElementById('symbolPerformanceChart');
+    if (!canvas) return;
+    if (!symbolData.length) {
+        canvas.parentElement.innerHTML = '<div class="tj-empty"><i class="fas fa-coins fa-2x mb-2 d-block"></i><p class="mb-0">No symbol data yet</p></div>';
+        return;
+    }
+    const labels   = symbolData.map(s => s.symbol);
+    const pnls     = symbolData.map(s => s.pnl);
+    const colors   = pnls.map(v => v >= 0 ? 'rgba(47, 191, 113, 0.85)' : 'rgba(229, 72, 77, 0.85)');
+    const borders  = pnls.map(v => v >= 0 ? '#2FBF71' : '#E5484D');
+
+    new Chart(canvas.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Total P&L ($)',
+                data: pnls,
+                backgroundColor: colors,
+                borderColor: borders,
+                borderWidth: 1,
+                borderRadius: 4,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        afterLabel: function(ctx) {
+                            const s = symbolData[ctx.dataIndex];
+                            return [`Win rate: ${s.win_rate}%`, `Trades: ${s.count}`];
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { color: '#8992A6', font: { family: 'JetBrains Mono', size: 11 } }
+                },
+                y: {
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: {
+                        color: '#8992A6',
+                        font: { family: 'JetBrains Mono', size: 10 },
+                        callback: v => '$' + v.toFixed(0)
+                    }
+                }
+            }
+        }
+    });
+})();
+
+// ── Trading Hours Heatmap (bar chart) ────────────────────────────────────
+const hoursData = {{ trading_hours_data | tojson }};
+(function() {
+    const container = document.getElementById('tradingHoursHeatmap');
+    if (!container) return;
+    const active = hoursData.filter(h => h.count > 0);
+    if (!active.length) {
+        container.innerHTML = '<div class="tj-empty"><i class="fas fa-clock fa-2x mb-2 d-block"></i><p class="mb-0">No trading hour data yet</p></div>';
+        return;
+    }
+    const canvas = document.createElement('canvas');
+    canvas.height = 160;
+    container.appendChild(canvas);
+
+    const labels = hoursData.map(h => h.hour + ':00');
+    const pnls   = hoursData.map(h => h.pnl);
+    const colors = pnls.map(v => v > 0 ? 'rgba(47,191,113,0.8)' : v < 0 ? 'rgba(229,72,77,0.8)' : 'rgba(58,64,81,0.6)');
+
+    new Chart(canvas.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'P&L by Hour',
+                data: pnls,
+                backgroundColor: colors,
+                borderRadius: 3,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            const h = hoursData[ctx.dataIndex];
+                            if (h.count === 0) return ' No trades';
+                            return [
+                                ` P&L: $${h.pnl.toFixed(2)}`,
+                                ` Trades: ${h.count}`,
+                                ` Win rate: ${h.win_rate}%`
+                            ];
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#8992A6', font: { family: 'JetBrains Mono', size: 9 }, maxRotation: 0 }
+                },
+                y: {
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { color: '#8992A6', font: { family: 'JetBrains Mono', size: 10 }, callback: v => '$' + v }
+                }
+            }
+        }
+    });
+})();
+</script>
+{% endblock %}
+
