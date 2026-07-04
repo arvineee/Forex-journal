@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Admin - {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <a href="{{ url_for('admin.users') }}" class="text-decoration-none small mb-3 d-inline-block">
+        <i class="fas fa-arrow-left me-1"></i>Back to Users
+    </a>
+
+    <h2 class="mb-4">
+        <i class="fas fa-user me-2"></i>{{ user.username }}
+        {% if user.is_admin %}<span class="badge bg-primary">Admin</span>{% endif %}
+    </h2>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center p-3">
+                <div class="text-muted small">Email</div>
+                <div class="fw-bold">{{ user.email }}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center p-3">
+                <div class="text-muted small">Joined</div>
+                <div class="fw-bold">{{ user.created_at.strftime('%Y-%m-%d') if user.created_at else '-' }}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center p-3">
+                <div class="text-muted small">Total Logins</div>
+                <div class="fw-bold">{{ user.login_count or 0 }}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center p-3">
+                <div class="text-muted small">Trades Logged</div>
+                <div class="fw-bold">{{ trade_count }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow">
+        <div class="card-body">
+            <h5 class="mb-3">Recent Login Activity</h5>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Date/Time</th>
+                            <th>IP Address</th>
+                            <th>User Agent</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for login in logins %}
+                        <tr>
+                            <td>{{ login.login_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                            <td>{{ login.ip_address or '-' }}</td>
+                            <td class="text-truncate" style="max-width: 400px;">{{ login.user_agent or '-' }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted py-3">No login activity recorded yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

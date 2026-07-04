@@ -18,6 +18,9 @@ class User(UserMixin, db.Model):
     trading_strategies = db.relationship('TradingStrategy', backref='user', lazy='dynamic', cascade='all, delete-orphan')
     trading_goals = db.relationship('TradingGoal', backref='user', lazy='dynamic', cascade='all, delete-orphan')
     trade_setups = db.relationship('TradeSetup', backref='user', lazy='dynamic', cascade='all, delete-orphan')
+    is_admin = db.Column(db.Boolean, default=False, nullable=False)
+    last_login_at = db.Column(db.DateTime)
+    login_count = db.Column(db.Integer, default=0, nullable=False)
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -142,6 +145,24 @@ class TradingGoal(db.Model):
     end_date = db.Column(db.DateTime, nullable=False)
     is_achieved = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class LoginActivity(db.Model):
+    __tablename__ = 'login_activity'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    login_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    ip_address = db.Column(db.String(45))
+    user_agent = db.Column(db.String(255))
+
+    user = db.relationship(
+        'User',
+        backref=db.backref('login_activities', lazy='dynamic', cascade='all, delete-orphan')
+    )
+
+    def __repr__(self):
+        return f'<LoginActivity user={self.user_id} at={self.login_at}>'
 
 @login_manager.user_loader
 def load_user(id):

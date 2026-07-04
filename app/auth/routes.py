@@ -1,8 +1,9 @@
+from datetime import datetime
 from flask import render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, current_user, login_required
 from app import db
 from app.auth import auth_bp
-from app.models import User
+from app.models import User, LoginActivity
 from app.auth.forms import LoginForm, RegistrationForm, RequestResetForm, ResetPasswordForm
 from app.email import send_reset_email
 
@@ -35,6 +36,18 @@ def login():
             return redirect(url_for('auth.login'))
         
         login_user(user, remember=form.remember_me.data)
+
+        # --- Track login activity ---
+        user.last_login_at = datetime.utcnow()
+        user.login_count = (user.login_count or 0) + 1
+        db.session.add(LoginActivity(
+            user_id=user.id,
+            ip_address=request.remote_addr,
+            user_agent=request.user_agent.string if request.user_agent else None
+        ))
+        db.session.commit()
+        # -----------------------------
+
         next_page = request.args.get('next')
         return redirect(next_page or url_for('dashboard.index'))
     
@@ -57,9 +70,6 @@ def reset_request():
         user = User.query.filter_by(email=form.email.data).first()
         if user:
             send_reset_email(user)
-        # Same message whether or not the email exists, to avoid leaking
-        # which emails are registered. (validate_email above already checks
-        # existence for UX purposes; this line is just defense in depth.)
         flash('If that email is registered, a reset link has been sent to it.', 'info')
         return redirect(url_for('auth.login'))
 
