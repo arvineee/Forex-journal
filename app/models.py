@@ -20,7 +20,7 @@ class User(UserMixin, db.Model):
     trade_setups = db.relationship('TradeSetup', backref='user', lazy='dynamic', cascade='all, delete-orphan')
     is_admin = db.Column(db.Boolean, default=False, nullable=True)
     last_login_at = db.Column(db.DateTime)
-    login_count = db.Column(db.Integer, default=0, nullable=False)
+    login_count = db.Column(db.Integer, default=0, nullable=True)
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
