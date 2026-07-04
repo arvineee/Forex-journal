@@ -144,5 +144,9 @@ def index():
                              current_balance=0,
                              recent_trades=[],
                              risk_metrics=default_risk_metrics, 
-                             account_metrics=default_account_metrics)  
+                             account_metrics=default_account_metrics,
+                             win_loss_data={'wins': 0, 'losses': 0, 'breakeven': 0},
+                             symbol_data=[],
+                             trading_hours_data=[{'hour': h, 'pnl': 0, 'count': 0, 'win_rate': 0} for h in range(24)],
+                             ai_insights=[])  
 
