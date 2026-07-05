@@ -28,6 +28,8 @@ def create_app(config_class=Config):
     login_manager.init_app(app)
     migrate.init_app(app, db)
     mail.init_app(app) 
+    app.register_blueprint(advanced_protection_bp)
+    advanced_protection.init_app(app)
 
     @app.template_filter('datetimeformat')
     def datetimeformat(value, format='%Y-%m-%d %H:%M'):

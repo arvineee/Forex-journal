@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+
+{% block title %}Security - Admin{% endblock %}
+
+{% block styles %}
+<style>
+    :root {
+        --tj-bg:        #0B0E14;
+        --tj-panel:     #12161F;
+        --tj-panel-alt: #171C27;
+        --tj-hairline:  #232838;
+        --tj-amber:     #E8A33D;
+        --tj-amber-dim: rgba(232, 163, 61, 0.14);
+        --tj-success:   #2FBF71;
+        --tj-danger:    #E5484D;
+        --tj-warning:   #F2B94D;
+        --tj-text:      #E7E9EE;
+        --tj-muted:     #8992A6;
+    }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+    body { background: var(--tj-bg) !important; font-family: 'Inter', sans-serif; }
+    main.container-fluid { max-width: 1400px; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    .tj-panel {
+        background: var(--tj-panel);
+        border: 1px solid var(--tj-hairline);
+        border-radius: 6px;
+        margin-bottom: 24px;
+    }
+    .tj-panel-header {
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--tj-hairline);
+        display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    }
+    .tj-panel-header .tj-title {
+        font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.07em;
+        color: var(--tj-muted); font-weight: 600; margin: 0;
+    }
+    .tj-panel-body { padding: 20px; }
+
+    .metric-strip { display: flex; flex-wrap: wrap; background: var(--tj-panel); border: 1px solid var(--tj-hairline); border-radius: 6px; margin-bottom: 24px; overflow: hidden; }
+    .metric-cell { flex: 1 1 160px; padding: 16px 18px; border-right: 1px solid var(--tj-hairline); }
+    .metric-cell:last-child { border-right: none; }
+    .metric-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--tj-muted); margin-bottom: 6px; }
+    .metric-value { font-family: 'JetBrains Mono', monospace; font-size: 1.35rem; font-weight: 700; color: var(--tj-text); }
+
+    .badge-mode {
+        font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; text-transform: uppercase;
+        letter-spacing: 0.06em; padding: 4px 10px; border-radius: 4px;
+    }
+    .badge-mode.active { background: rgba(47,191,113,0.15); color: var(--tj-success); }
+    .badge-mode.monitor { background: rgba(76,141,255,0.15); color: #4C8DFF; }
+    .badge-mode.under_attack { background: rgba(229,72,77,0.15); color: var(--tj-danger); }
+
+    .badge-threat { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; }
+    .badge-threat.low { background: rgba(47,191,113,0.15); color: var(--tj-success); }
+    .badge-threat.medium { background: rgba(232,163,61,0.15); color: var(--tj-amber); }
+    .badge-threat.high, .badge-threat.critical { background: rgba(229,72,77,0.15); color: var(--tj-danger); }
+
+    .tj-table { width: 100%; font-size: 0.88rem; }
+    .tj-table th { color: var(--tj-muted); font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 8px 12px; border-bottom: 1px solid var(--tj-hairline); text-align: left; }
+    .tj-table td { padding: 10px 12px; border-bottom: 1px solid var(--tj-hairline); color: var(--tj-text); vertical-align: middle; }
+    .tj-table tr:last-child td { border-bottom: none; }
+
+    .tj-empty { text-align: center; padding: 30px; color: var(--tj-muted); }
+
+    .form-label-tj { color: var(--tj-muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+    .form-control-tj, .form-select-tj {
+        background: var(--tj-panel-alt); border: 1px solid var(--tj-hairline); color: var(--tj-text);
+    }
+    .form-control-tj:focus, .form-select-tj:focus {
+        background: var(--tj-panel-alt); border-color: var(--tj-amber); color: var(--tj-text); box-shadow: none;
+    }
+    .form-check-input:checked { background-color: var(--tj-amber); border-color: var(--tj-amber); }
+
+    .btn-tj { background: var(--tj-amber); border: none; color: #17130A; font-weight: 600; }
+    .btn-tj:hover { filter: brightness(1.1); color: #17130A; }
+    .btn-tj-outline { background: transparent; border: 1px solid var(--tj-hairline); color: var(--tj-text); }
+    .btn-tj-outline:hover { border-color: var(--tj-amber); color: var(--tj-amber); }
+    .btn-tj-danger { background: transparent; border: 1px solid rgba(229,72,77,0.4); color: var(--tj-danger); }
+    .btn-tj-danger:hover { background: rgba(229,72,77,0.1); border-color: var(--tj-danger); color: var(--tj-danger); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h1 class="h3 mb-1" style="color: var(--tj-text);"><i class="fas fa-shield-alt me-2"></i>Security</h1>
+            <p class="mb-0 small" style="color: var(--tj-muted);">
+                Mode: <span class="badge-mode {{ config.MODE }}">{{ config.MODE }}</span>
+                &nbsp;&middot;&nbsp; Threat level: <span class="badge-threat {{ stats.threat_level }}">{{ stats.threat_level }}</span>
+            </p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{{ url_for('advanced_protection.stats_page') }}" class="btn btn-tj-outline btn-sm">
+                <i class="fas fa-chart-bar me-1"></i>Detailed Stats
+            </a>
+            <a href="{{ url_for('advanced_protection.export_logs') }}" class="btn btn-tj-outline btn-sm">
+                <i class="fas fa-download me-1"></i>Export Logs
+            </a>
+            {% if config.MODE != 'under_attack' %}
+            <form method="POST" action="{{ url_for('advanced_protection.set_protection_mode', mode='under_attack') }}" class="d-inline">
+                <button type="submit" class="btn btn-tj-danger btn-sm" onclick="return confirm('Activate strict under-attack mode? This tightens all limits immediately.');">
+                    <i class="fas fa-triangle-exclamation me-1"></i>Activate Strict Mode
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="metric-strip">
+        <div class="metric-cell"><div class="metric-label">Total Requests</div><div class="metric-value">{{ stats.total_requests }}</div></div>
+        <div class="metric-cell"><div class="metric-label">Blocked</div><div class="metric-value" style="color: var(--tj-danger);">{{ stats.blocked_requests }}</div></div>
+        <div class="metric-cell"><div class="metric-label">Block Rate</div><div class="metric-value">{{ "%.1f"|format(stats.block_rate) }}%</div></div>
+        <div class="metric-cell"><div class="metric-label">Currently Banned</div><div class="metric-value" style="color: var(--tj-amber);">{{ stats.currently_banned }}</div></div>
+        <div class="metric-cell"><div class="metric-label">SYN Banned</div><div class="metric-value">{{ stats.syn_banned }}</div></div>
+        <div class="metric-cell"><div class="metric-label">Current RPS</div><div class="metric-value">{{ "%.1f"|format(stats.current_rps) }}</div></div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Banned IPs -->
+        <div class="col-lg-6">
+            <div class="tj-panel h-100">
+                <div class="tj-panel-header">
+                    <p class="tj-title">Banned IPs ({{ banned_ips|length }})</p>
+                    {% if banned_ips %}
+                    <form method="POST" action="{{ url_for('advanced_protection.unban_all_ips') }}" onsubmit="return confirm('Unban all IPs?');">
+                        <button type="submit" class="btn btn-tj-outline btn-sm">Unban All</button>
+                    </form>
+                    {% endif %}
+                </div>
+                <div class="tj-panel-body p-0">
+                    {% if banned_ips %}
+                    <table class="tj-table">
+                        <thead><tr><th>IP</th><th>Reason</th><th>Expires</th><th></th></tr></thead>
+                        <tbody>
+                        {% for ip, info in banned_ips.items() %}
+                            <tr>
+                                <td class="mono">{{ ip }}</td>
+                                <td style="color: var(--tj-muted);">{{ info.reason }}</td>
+                                <td class="mono" style="color: var(--tj-muted);">{{ info.expires }}</td>
+                                <td>
+                                    <form method="POST" action="{{ url_for('advanced_protection.unban_ip_route', ip=ip) }}">
+                                        <button type="submit" class="btn btn-tj-outline btn-sm">Unban</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="tj-empty"><i class="fas fa-check-circle fa-2x mb-2 d-block"></i>No banned IPs</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- SYN Banned IPs -->
+        <div class="col-lg-6">
+            <div class="tj-panel h-100">
+                <div class="tj-panel-header"><p class="tj-title">SYN Flood Bans ({{ syn_banned_ips|length }})</p></div>
+                <div class="tj-panel-body p-0">
+                    {% if syn_banned_ips %}
+                    <table class="tj-table">
+                        <thead><tr><th>IP</th><th>Reason</th><th>Expires</th><th></th></tr></thead>
+                        <tbody>
+                        {% for ip, info in syn_banned_ips.items() %}
+                            <tr>
+                                <td class="mono">{{ ip }}</td>
+                                <td style="color: var(--tj-muted);">{{ info.reason }}</td>
+                                <td class="mono" style="color: var(--tj-muted);">{{ info.expires }}</td>
+                                <td>
+                                    <form method="POST" action="{{ url_for('advanced_protection.unban_syn_ip_route', ip=ip) }}">
+                                        <button type="submit" class="btn btn-tj-outline btn-sm">Unban</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="tj-empty"><i class="fas fa-check-circle fa-2x mb-2 d-block"></i>No SYN bans active</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Configuration -->
+        <div class="col-lg-7">
+            <div class="tj-panel h-100">
+                <div class="tj-panel-header"><p class="tj-title">Configuration</p></div>
+                <div class="tj-panel-body">
+                    <form method="POST" action="{{ url_for('advanced_protection.update_config') }}">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label-tj">Protection Mode</label>
+                                <select name="protection_mode" class="form-select form-select-tj">
+                                    <option value="active" {{ 'selected' if config.MODE == 'active' }}>Active</option>
+                                    <option value="monitor" {{ 'selected' if config.MODE == 'monitor' }}>Monitor Only</option>
+                                    <option value="under_attack" {{ 'selected' if config.MODE == 'under_attack' }}>Under Attack</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-tj">Auto-Ban</label>
+                                <select name="auto_ban" class="form-select form-select-tj">
+                                    <option value="true" {{ 'selected' if config.AUTO_BAN }}>Enabled</option>
+                                    <option value="false" {{ 'selected' if not config.AUTO_BAN }}>Disabled</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label-tj">Request Limit / min</label>
+                                <input type="number" name="request_limit" value="{{ config.REQUEST_LIMIT }}" class="form-control form-control-tj">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label-tj">Window (sec)</label>
+                                <input type="number" name="window_size" value="{{ config.WINDOW_SIZE }}" class="form-control form-control-tj">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label-tj">Ban Time (sec)</label>
+                                <input type="number" name="ban_time" value="{{ config.BAN_TIME }}" class="form-control form-control-tj">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label-tj">SYN Threshold</label>
+                                <input type="number" name="syn_flood_threshold" value="{{ config.SYN_FLOOD_THRESHOLD }}" class="form-control form-control-tj">
+                            </div>
+                        </div>
+
+                        <label class="form-label-tj d-block mb-2">Toggles</label>
+                        <div class="row g-2 mb-3">
+                            {% set toggles = [
+                                ('waf_enabled', 'WAF_ENABLED', 'WAF (SQLi/XSS filter)'),
+                                ('js_challenge_enabled', 'JS_CHALLENGE_ENABLED', 'JS Challenge'),
+                                ('captcha_enabled', 'CAPTCHA_ENABLED', 'CAPTCHA'),
+                                ('geo_blocking_enabled', 'GEO_BLOCKING_ENABLED', 'Geo-Blocking'),
+                                ('behavioral_analysis', 'BEHAVIORAL_ANALYSIS_ENABLED', 'Behavioral Analysis'),
+                                ('api_rate_limiting', 'API_RATE_LIMITING_ENABLED', 'API Rate Limiting'),
+                                ('progressive_delay', 'PROGRESSIVE_DELAY', 'Progressive Delay'),
+                            ] %}
+                            {% for form_key, cfg_key, label in toggles %}
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="{{ form_key }}" id="{{ form_key }}" {{ 'checked' if config[cfg_key] }}>
+                                    <label class="form-check-label small" for="{{ form_key }}" style="color: var(--tj-text);">{{ label }}</label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <button type="submit" class="btn btn-tj">Save Configuration</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Countries -->
+        <div class="col-lg-5">
+            <div class="tj-panel h-100">
+                <div class="tj-panel-header"><p class="tj-title">Country Access</p></div>
+                <div class="tj-panel-body">
+                    <form method="POST" action="{{ url_for('advanced_protection.update_countries') }}">
+                        <div class="mb-3">
+                            <label class="form-label-tj">Whitelisted Countries</label>
+                            <select name="allowed_countries" class="form-select form-select-tj" multiple size="6">
+                                {% for c in countries_list %}
+                                <option value="{{ c.code }}" {{ 'selected' if c.code in allowed_countries }}>{{ c.name }} ({{ c.code }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label-tj">Blocked Countries</label>
+                            <select name="blocked_countries" class="form-select form-select-tj" multiple size="6">
+                                {% for c in countries_list %}
+                                <option value="{{ c.code }}" {{ 'selected' if c.code in blocked_countries }}>{{ c.name }} ({{ c.code }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-tj">Save Country Settings</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Maintenance -->
+    <div class="tj-panel">
+        <div class="tj-panel-header"><p class="tj-title">Maintenance</p></div>
+        <div class="tj-panel-body d-flex gap-2 flex-wrap">
+            <form method="POST" action="{{ url_for('advanced_protection.clear_challenges') }}">
+                <button type="submit" class="btn btn-tj-outline btn-sm">Clear Active Challenges</button>
+            </form>
+            <form method="POST" action="{{ url_for('advanced_protection.flush_cache') }}">
+                <button type="submit" class="btn btn-tj-outline btn-sm">Flush Cache</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
