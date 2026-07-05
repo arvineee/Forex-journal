@@ -1,48 +1,141 @@
 import os
-from datetime import timedelta
+from dotenv import load_dotenv
 
-basedir = os.path.abspath(os.path.dirname(__file__))
+load_dotenv()
+
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-key-change-in-production'
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') 
+    # Database - Configured for PythonAnywhere MySQL
+    SQLALCHEMY_DATABASE_URI =  "sqlite:///test.db" 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    UPLOAD_FOLDER = os.path.join(basedir, 'app/static/uploads')
-    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
-    PERMANENT_SESSION_LIFETIME = timedelta(days=7)
-    
-    # Migration directory
-    MIGRATIONS_DIR = os.path.join(basedir, 'migrations')
+    # pool_recycle is important on PythonAnywhere to prevent "MySQL server has gone away" errors
+    SQLALCHEMY_ENGINE_OPTIONS = {"pool_recycle": 280}
 
-    COUNTRIES_LIST = [
-    {'code': 'KE', 'name': 'Kenya'},
-    {'code': 'US', 'name': 'United States'},
-    {'code': 'GB', 'name': 'United Kingdom'},
-    {'code': 'CA', 'name': 'Canada'},
-    {'code': 'AU', 'name': 'Australia'},
-    {'code': 'IN', 'name': 'India'},
-    {'code': 'NG', 'name': 'Nigeria'},
-    {'code': 'ZA', 'name': 'South Africa'},
-    {'code': 'UG', 'name': 'Uganda'},
-    {'code': 'TZ', 'name': 'Tanzania'},
-    {'code': 'DE', 'name': 'Germany'},
-    {'code': 'FR', 'name': 'France'},
-    {'code': 'NL', 'name': 'Netherlands'},
-    {'code': 'AE', 'name': 'United Arab Emirates'},
-    {'code': 'SG', 'name': 'Singapore'},
-    {'code': 'JP', 'name': 'Japan'},
-    {'code': 'CN', 'name': 'China'},
-    {'code': 'RU', 'name': 'Russia'},
-    {'code': 'BR', 'name': 'Brazil'},
-    {'code': 'MX', 'name': 'Mexico'},
-    {'code': 'PH', 'name': 'Philippines'},
-    {'code': 'PK', 'name': 'Pakistan'},
-    {'code': 'BD', 'name': 'Bangladesh'},
-    {'code': 'ID', 'name': 'Indonesia'},
-    {'code': 'VN', 'name': 'Vietnam'},
-    {'code': 'EG', 'name': 'Egypt'},
-    {'code': 'GH', 'name': 'Ghana'},
-    {'code': 'ET', 'name': 'Ethiopia'},
-    {'code': 'RW', 'name': 'Rwanda'},
-    {'code': 'ZW', 'name': 'Zimbabwe'},
+    # Security
+    SECRET_KEY = os.environ.get("SECRET_KEY", "mibgssyohd26h95x£>{fj48ivsv")
+
+    # Email - Using your Gmail App Password
+    MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+    MAIL_PORT = int(os.environ.get('MAIL_PORT', 587))
+    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'true').lower() == 'true'
+    MAIL_USERNAME = os.environ.get("MAIL_USERNAME")
+    MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD")
+    MAIL_DEFAULT_SENDER = os.environ.get("MAIL_DEFAULT_SENDER") or os.environ.get("MAIL_USERNAME")
+
+    # Redis
+    REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+
+    # GeoIP
+    GEOIP_DATABASE_PATH = ""
+
+    # Advanced Protection Settings
+    PROTECTION_MODE = os.environ.get('PROTECTION_MODE', 'active')
+    REQUEST_LIMIT = int(os.environ.get('REQUEST_LIMIT', 500))
+    WINDOW_SIZE = int(os.environ.get('WINDOW_SIZE', 60))
+    BAN_TIME = int(os.environ.get('BAN_TIME', 300))
+    AUTO_BAN = os.environ.get('AUTO_BAN', 'true').lower() == 'true'
+    WAF_ENABLED = os.environ.get('WAF_ENABLED', 'true').lower() == 'true'
+    JS_CHALLENGE_ENABLED = os.environ.get('JS_CHALLENGE_ENABLED', 'true').lower() == 'true'
+    CAPTCHA_ENABLED = os.environ.get('CAPTCHA_ENABLED', 'true').lower() == 'true'
+    BEHAVIORAL_ANALYSIS_ENABLED = os.environ.get('BEHAVIORAL_ANALYSIS_ENABLED', 'true').lower() == 'true'
+    GEO_BLOCKING_ENABLED = os.environ.get('GEO_BLOCKING_ENABLED', 'true').lower() == 'true'
+    API_RATE_LIMITING_ENABLED = os.environ.get('API_RATE_LIMITING_ENABLED', 'true').lower() == 'true'
+    SYN_FLOOD_THRESHOLD = int(os.environ.get('SYN_FLOOD_THRESHOLD', 500))
+
+    # External Services
+    ABUSEIPDB_API_KEY = os.environ.get('ABUSEIPDB_API_KEY')
+    CLOUDFLARE_API_KEY = os.environ.get('CLOUDFLARE_API_KEY')
+    RECAPTCHA_SECRET_KEY = os.environ.get('RECAPTCHA_SECRET_KEY')
+
+    # Gemini AI (trade pattern analysis, AI insights)
+    GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
+    GEMINI_MODEL = os.environ.get('GEMINI_MODEL', 'gemini-2.0-flash-lite')
+
+    # Application
+    DEBUG = os.environ.get('DEBUG', 'false').lower() == 'true'
+    ENV = os.environ.get('ENV', 'production')
+
+    # Video upload configuration
+    VIDEO_FOLDER = os.path.join(BASE_DIR, 'app', 'static', 'videos')
+    MAX_VIDEO_SIZE = 50 * 1024 * 1024  # 50MB
+    
+# Ensure the video folder exists
+os.makedirs(os.path.join(BASE_DIR, 'app', 'static', 'videos'), exist_ok=True)
+
+# Required for advanced_protection.py
+COUNTRIES_LIST = [
+    ('AF', 'Afghanistan'), ('AX', 'Åland Islands'), ('AL', 'Albania'), ('DZ', 'Algeria'),
+    ('AS', 'American Samoa'), ('AD', 'Andorra'), ('AO', 'Angola'), ('AI', 'Anguilla'),
+    ('AQ', 'Antarctica'), ('AG', 'Antigua and Barbuda'), ('AR', 'Argentina'), ('AM', 'Armenia'),
+    ('AW', 'Aruba'), ('AU', 'Australia'), ('AT', 'Austria'), ('AZ', 'Azerbaijan'),
+    ('BS', 'Bahamas'), ('BH', 'Bahrain'), ('BD', 'Bangladesh'), ('BB', 'Barbados'),
+    ('BY', 'Belarus'), ('BE', 'Belgium'), ('BZ', 'Belize'), ('BJ', 'Benin'),
+    ('BM', 'Bermuda'), ('BT', 'Bhutan'), ('BO', 'Bolivia'), ('BQ', 'Bonaire'), 
+    ('BA', 'Bosnia and Herzegovina'), ('BW', 'Botswana'), ('BV', 'Bouvet Island'),
+    ('BR', 'Brazil'), ('IO', 'British Indian Ocean Territory'), ('BN', 'Brunei Darussalam'),
+    ('BG', 'Bulgaria'), ('BF', 'Burkina Faso'), ('BI', 'Burundi'), ('CV', 'Cabo Verde'),
+    ('KH', 'Cambodia'), ('CM', 'Cameroon'), ('CA', 'Canada'), ('KY', 'Cayman Islands'),
+    ('CF', 'Central African Republic'), ('TD', 'Chad'), ('CL', 'Chile'), ('CN', 'China'),
+    ('CX', 'Christmas Island'), ('CC', 'Cocos (Keeling) Islands'), ('CO', 'Colombia'),
+    ('KM', 'Comoros'), ('CG', 'Congo'), ('CD', 'Congo, Democratic Republic of the'),
+    ('CK', 'Cook Islands'), ('CR', 'Costa Rica'), ('CI', "Côte d'Ivoire"), ('HR', 'Croatia'),
+    ('CU', 'Cuba'), ('CW', 'Curaçao'), ('CY', 'Cyprus'), ('CZ', 'Czechia'),
+    ('DK', 'Denmark'), ('DJ', 'Djibouti'), ('DM', 'Dominica'), ('DO', 'Dominican Republic'),
+    ('EC', 'Ecuador'), ('EG', 'Egypt'), ('SV', 'El Salvador'), ('GQ', 'Equatorial Guinea'),
+    ('ER', 'Eritrea'), ('EE', 'Estonia'), ('SZ', 'Eswatini'), ('ET', 'Ethiopia'),
+    ('FK', 'Falkland Islands'), ('FO', 'Faroe Islands'), ('FJ', 'Fiji'), ('FI', 'Finland'),
+    ('FR', 'France'), ('GF', 'French Guiana'), ('PF', 'French Polynesia'),
+    ('TF', 'French Southern Territories'), ('GA', 'Gabon'), ('GM', 'Gambia'),
+    ('GE', 'Georgia'), ('DE', 'Germany'), ('GH', 'Ghana'), ('GI', 'Gibraltar'),
+    ('GR', 'Greece'), ('GL', 'Greenland'), ('GD', 'Grenada'), ('GP', 'Guadeloupe'),
+    ('GU', 'Guam'), ('GT', 'Guatemala'), ('GG', 'Guernsey'), ('GN', 'Guinea'),
+    ('GW', 'Guinea-Bissau'), ('GY', 'Guyana'), ('HT', 'Haiti'),
+    ('HM', 'Heard Island and McDonald Islands'), ('VA', 'Holy See'), ('HN', 'Honduras'),
+    ('HK', 'Hong Kong'), ('HU', 'Hungary'), ('IS', 'Iceland'), ('IN', 'India'),
+    ('ID', 'Indonesia'), ('IR', 'Iran'), ('IQ', 'Iraq'), ('IE', 'Ireland'),
+    ('IM', 'Isle of Man'), ('IL', 'Israel'), ('IT', 'Italy'), ('JM', 'Jamaica'),
+    ('JP', 'Japan'), ('JE', 'Jersey'), ('JO', 'Jordan'), ('KZ', 'Kazakhstan'),
+    ('KE', 'Kenya'), ('KI', 'Kiribati'), ('KP', "Korea, Democratic People's Republic of"),
+    ('KR', 'Korea, Republic of'), ('KW', 'Kuwait'), ('KG', 'Kyrgyzstan'),
+    ('LA', "Lao People's Democratic Republic"), ('LV', 'Latvia'), ('LB', 'Lebanon'),
+    ('LS', 'Lesotho'), ('LR', 'Liberia'), ('LY', 'Libya'), ('LI', 'Liechtenstein'),
+    ('LT', 'Lithuania'), ('LU', 'Luxembourg'), ('MO', 'Macao'), ('MG', 'Madagascar'),
+    ('MW', 'Malawi'), ('MY', 'Malaysia'), ('MV', 'Maldives'), ('ML', 'Mali'),
+    ('MT', 'Malta'), ('MH', 'Marshall Islands'), ('MQ', 'Martinique'),
+    ('MR', 'Mauritania'), ('MU', 'Mauritius'), ('YT', 'Mayotte'), ('MX', 'Mexico'),
+    ('FM', 'Micronesia'), ('MD', 'Moldova'), ('MC', 'Monaco'), ('MN', 'Mongolia'),
+    ('ME', 'Montenegro'), ('MS', 'Montserrat'), ('MA', 'Morocco'), ('MZ', 'Mozambique'),
+    ('MM', 'Myanmar'), ('NA', 'Namibia'), ('NR', 'Nauru'), ('NP', 'Nepal'),
+    ('NL', 'Netherlands'), ('NC', 'New Caledonia'), ('NZ', 'New Zealand'),
+    ('NI', 'Nicaragua'), ('NE', 'Niger'), ('NG', 'Nigeria'), ('NU', 'Niue'),
+    ('NF', 'Norfolk Island'), ('MK', 'North Macedonia'), ('MP', 'Northern Mariana Islands'),
+    ('NO', 'Norway'), ('OM', 'Oman'), ('PK', 'Pakistan'), ('PW', 'Palau'),
+    ('PS', 'Palestine, State of'), ('PA', 'Panama'), ('PG', 'Papua New Guinea'),
+    ('PY', 'Paraguay'), ('PE', 'Peru'), ('PH', 'Philippines'), ('PN', 'Pitcairn'),
+    ('PL', 'Poland'), ('PT', 'Portugal'), ('PR', 'Puerto Rico'), ('QA', 'Qatar'),
+    ('RE', 'Réunion'), ('RO', 'Romania'), ('RU', 'Russian Federation'), ('RW', 'Rwanda'),
+    ('BL', 'Saint Barthélemy'), ('SH', 'Saint Helena, Ascension and Tristan da Cunha'),
+    ('KN', 'Saint Kitts and Nevis'), ('LC', 'Saint Lucia'), ('MF', 'Saint Martin (French part)'),
+    ('PM', 'Saint Pierre and Miquelon'), ('VC', 'Saint Vincent and the Grenadines'),
+    ('WS', 'Samoa'), ('SM', 'San Marino'), ('ST', 'Sao Tome and Principe'),
+    ('SA', 'Saudi Arabia'), ('SN', 'Senegal'), ('RS', 'Serbia'), ('SC', 'Seychelles'),
+    ('SL', 'Sierra Leone'), ('SG', 'Singapore'), ('SX', 'Sint Maarten (Dutch part)'),
+    ('SK', 'Slovakia'), ('SI', 'Slovenia'), ('SB', 'Solomon Islands'), ('SO', 'Somalia'),
+    ('ZA', 'South Africa'), ('GS', 'South Georgia and the South Sandwich Islands'),
+    ('SS', 'South Sudan'), ('ES', 'Spain'), ('LK', 'Sri Lanka'), ('SD', 'Sudan'),
+    ('SR', 'Suriname'), ('SJ', 'Svalbard and Jan Mayen'), ('SE', 'Sweden'),
+    ('CH', 'Switzerland'), ('SY', 'Syrian Arab Republic'), ('TW', 'Taiwan'),
+    ('TJ', 'Tajikistan'), ('TZ', 'Tanzania'), ('TH', 'Thailand'), ('TL', 'Timor-Leste'),
+    ('TG', 'Togo'), ('TK', 'Tokelau'), ('TO', 'Tonga'), ('TT', 'Trinidad and Tobago'),
+    ('TN', 'Tunisia'), ('TR', 'Turkey'), ('TM', 'Turkmenistan'), ('TC', 'Turks and Caicos Islands'),
+    ('TV', 'Tuvalu'), ('UG', 'Uganda'), ('UA', 'Ukraine'), ('AE', 'United Arab Emirates'),
+    ('GB', 'United Kingdom'), ('US', 'United States'), ('UM', 'United States Minor Outlying Islands'),
+    ('UY', 'Uruguay'), ('UZ', 'Uzbekistan'), ('VU', 'Vanuatu'), ('VE', 'Venezuela'),
+    ('VN', 'Viet Nam'), ('VG', 'Virgin Islands, British'), ('VI', 'Virgin Islands, U.S.'),
+    ('WF', 'Wallis and Futuna'), ('EH', 'Western Sahara'), ('YE', 'Yemen'),
+    ('ZM', 'Zambia'), ('ZW', 'Zimbabwe')
 ]
+
+
+
