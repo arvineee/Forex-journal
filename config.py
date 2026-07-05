@@ -7,7 +7,7 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
     # Database - Configured for PythonAnywhere MySQL
-    SQLALCHEMY_DATABASE_URI =  "sqlite:///test.db" 
+    SQLALCHEMY_DATABASE_URI =  "sqlite:///forex_journal.db" 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     # pool_recycle is important on PythonAnywhere to prevent "MySQL server has gone away" errors
     SQLALCHEMY_ENGINE_OPTIONS = {"pool_recycle": 280}
@@ -59,9 +59,14 @@ class Config:
     # Video upload configuration
     VIDEO_FOLDER = os.path.join(BASE_DIR, 'app', 'static', 'videos')
     MAX_VIDEO_SIZE = 50 * 1024 * 1024  # 50MB
+
+    # General file upload configuration (trade chart screenshots, etc.)
+    UPLOAD_FOLDER = os.path.join(BASE_DIR, 'app', 'static', 'uploads')
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB
     
 # Ensure the video folder exists
 os.makedirs(os.path.join(BASE_DIR, 'app', 'static', 'videos'), exist_ok=True)
+os.makedirs(os.path.join(BASE_DIR, 'app', 'static', 'uploads'), exist_ok=True)
 
 # Required for advanced_protection.py
 COUNTRIES_LIST = [
