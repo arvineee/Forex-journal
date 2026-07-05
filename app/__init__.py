@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from config import Config
+from datetime import datetime
 import os
 from flask_mail import Mail
 from advanced_protection import advanced_protection
@@ -16,8 +17,7 @@ mail = Mail()
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
-    app.config['GEMINI_API_KEY'] = 'your_key_here'
-    
+
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
                 'SQLALCHEMY_DATABASE_URI',
                     'sqlite:////home/FelixJournal/Forex-journal/forex_journal.db'
@@ -28,8 +28,7 @@ def create_app(config_class=Config):
     login_manager.init_app(app)
     migrate.init_app(app, db)
     mail.init_app(app) 
-    app.register_blueprint(advanced_protection_bp)
-    advanced_protection.init_app(app)
+    advanced_protection.init_app(app)  # this also registers its own blueprint
 
     @app.template_filter('datetimeformat')
     def datetimeformat(value, format='%Y-%m-%d %H:%M'):
@@ -75,4 +74,5 @@ def create_app(config_class=Config):
             pass
     
     return app
+
 
