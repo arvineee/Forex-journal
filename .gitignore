@@ -1,4 +1,59 @@
+# ── Python ──────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# ── Virtual environments ────────────────────────────────
+venv/
+env/
+.venv/
+ENV/
+
+# ── Environment / secrets ───────────────────────────────
 .env
+.flaskenv
+*.pem
+*.key
+
+# ── Flask / instance ────────────────────────────────────
+instance/
+.webassets-cache
+
+# ── Databases ────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+test.db
+
+# ── Migrations (keep the folder, ignore generated cache) ─
+# Uncomment the next line ONLY if you don't want migration
+# scripts tracked at all (usually you DO want them in git):
+# migrations/
+
+# ── Uploads / user content ──────────────────────────────
+app/static/uploads/
+app/static/videos/
+security_cache/
+
+# ── Logs ─────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Editors / OS junk ────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# ── Termux / local dev artifacts ────────────────────────
+*.pyc
+.cache/
+
+# ── Distribution / packaging ─────────────────────────────
+build/
+dist/
+*.egg-info/
+
 config.py
-*db
-migrations

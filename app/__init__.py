@@ -5,7 +5,7 @@ from flask_migrate import Migrate
 from config import Config
 import os
 from flask_mail import Mail
-
+from advanced_protection import advanced_protection
 db = SQLAlchemy()
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
