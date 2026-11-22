@@ -4,6 +4,8 @@ from flask_login import LoginManager
 from flask_migrate import Migrate
 from config import Config
 from datetime import datetime
+from flask_login import current_user
+from app.utils.timezones import to_user_timezone, DEFAULT_TIMEZONE
 import os
 from flask_mail import Mail
 from advanced_protection import advanced_protection
@@ -34,12 +36,15 @@ def create_app(config_class=Config):
     def datetimeformat(value, format='%Y-%m-%d %H:%M'):
         if value is None:
             return ''
-        if isinstance(value, str):
-            try:
-                value = datetime.fromisoformat(value.replace('Z', '+00:00'))
-            except:
-                return value
-        return value.strftime(format)
+        zone = getattr(current_user, 'timezone', None) if getattr(current_user, 'is_authenticated', False) else DEFAULT_TIMEZONE
+        converted = to_user_timezone(value, zone)
+        return converted.strftime(format) if hasattr(converted, 'strftime') else converted
+
+    @app.context_processor
+    def inject_timezone_context():
+        from app.utils.timezones import COMMON_TIMEZONES
+        zone = getattr(current_user, 'timezone', DEFAULT_TIMEZONE) if getattr(current_user, 'is_authenticated', False) else DEFAULT_TIMEZONE
+        return {'current_timezone': zone, 'common_timezones': COMMON_TIMEZONES}
 
     
     # Register blueprints with error handling

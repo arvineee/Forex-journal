@@ -17,6 +17,7 @@ import json
 import pandas as pd  
 from app.trades.forms import TradeForm, ExportForm
 from app.account.routes import auto_update_balance_on_close
+from app.utils.timezones import local_to_utc_naive, to_user_timezone
 
 @trades_bp.route('/')
 @login_required
@@ -99,8 +100,8 @@ def new_trade():
             entry_price=form.entry_price.data,
             exit_price=form.exit_price.data,
             size=form.size.data,
-            entry_time=form.entry_time.data,
-            exit_time=form.exit_time.data,
+            entry_time=local_to_utc_naive(form.entry_time.data, current_user.timezone),
+            exit_time=local_to_utc_naive(form.exit_time.data, current_user.timezone),
             strategy=form.strategy.data,
             timeframe=form.timeframe.data,
             notes=form.notes.data,
@@ -153,8 +154,9 @@ def new_trade():
         flash('Trade added successfully!', 'success')
         return redirect(url_for('trades.index'))
     
-    # Pre-fill form with current time
-    form.entry_time.data = datetime.now()
+    # Pre-fill the new-trade form with the user's current local time
+    if request.method == 'GET':
+        form.entry_time.data = to_user_timezone(datetime.utcnow(), current_user.timezone).replace(tzinfo=None)
     
     # Get AI prediction for current setup (if available)
     ai_prediction = None
@@ -259,8 +261,8 @@ def edit_trade(trade_id):
         trade.entry_price = form.entry_price.data
         trade.exit_price = form.exit_price.data
         trade.size = form.size.data
-        trade.entry_time = form.entry_time.data
-        trade.exit_time = form.exit_time.data
+        trade.entry_time = local_to_utc_naive(form.entry_time.data, current_user.timezone)
+        trade.exit_time = local_to_utc_naive(form.exit_time.data, current_user.timezone)
         trade.strategy = form.strategy.data
         trade.timeframe = form.timeframe.data
         trade.notes = form.notes.data
@@ -312,8 +314,8 @@ def edit_trade(trade_id):
         form.entry_price.data = trade.entry_price
         form.exit_price.data = trade.exit_price
         form.size.data = trade.size
-        form.entry_time.data = trade.entry_time
-        form.exit_time.data = trade.exit_time
+        form.entry_time.data = to_user_timezone(trade.entry_time, current_user.timezone).replace(tzinfo=None)
+        form.exit_time.data = to_user_timezone(trade.exit_time, current_user.timezone).replace(tzinfo=None) if trade.exit_time else None
         form.strategy.data = trade.strategy
         form.timeframe.data = trade.timeframe
         form.notes.data = trade.notes

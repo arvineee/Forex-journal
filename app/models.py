@@ -11,6 +11,7 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False, index=True)
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
+    timezone = db.Column(db.String(64), nullable=False, default='Africa/Nairobi')
     password_hash = db.Column(db.String(256), nullable=False)  # Increased from 128 to 256
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     trades = db.relationship('Trade', backref='author', lazy='dynamic', cascade='all, delete-orphan')

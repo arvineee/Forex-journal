@@ -226,7 +226,7 @@
                                                      alt="Trade screenshot"
                                                      style="height: 80px; object-fit: cover;">
                                                 <div class="card-body text-center p-1">
-                                                    <small class="text-muted">{{ image.created_at.strftime('%m/%d') }}</small>
+                                                    <small class="text-muted">{{ image.created_at|datetimeformat('%m/%d') }}</small>
                                                 </div>
                                             </div>
                                         </div>

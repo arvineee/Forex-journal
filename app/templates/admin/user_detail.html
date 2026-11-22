@@ -23,7 +23,7 @@
         <div class="col-md-3">
             <div class="card border-0 shadow-sm text-center p-3">
                 <div class="text-muted small">Joined</div>
-                <div class="fw-bold">{{ user.created_at.strftime('%Y-%m-%d') if user.created_at else '-' }}</div>
+                <div class="fw-bold">{{ user.created_at|datetimeformat('%Y-%m-%d') if user.created_at else '-' }}</div>
             </div>
         </div>
         <div class="col-md-3">
@@ -55,7 +55,7 @@
                     <tbody>
                         {% for login in logins %}
                         <tr>
-                            <td>{{ login.login_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                            <td>{{ login.login_at|datetimeformat('%Y-%m-%d %H:%M:%S') }}</td>
                             <td>{{ login.ip_address or '-' }}</td>
                             <td class="text-truncate" style="max-width: 400px;">{{ login.user_agent or '-' }}</td>
                         </tr>

@@ -14,7 +14,7 @@
                         <h4 class="card-title mb-0">
                             <i class="fas fa-exchange-alt me-2"></i>Trade #{{ trade.id }} - {{ trade.symbol }}
                         </h4>
-                        <small class="text-muted">Created {{ trade.created_at.strftime('%Y-%m-%d at %H:%M') }}</small>
+                        <small class="text-muted">Created {{ trade.created_at|datetimeformat('%Y-%m-%d at %H:%M') }}</small>
                     </div>
                     <div class="d-flex gap-2">
                         <span class="badge bg-{{ 'warning' if trade.status == 'open' else 'secondary' }} fs-6">
@@ -119,7 +119,7 @@
                                     <strong>Entry Time:</strong>
                                 </div>
                                 <div class="col-6">
-                                    {{ trade.entry_time.strftime('%Y-%m-%d %H:%M') }}
+                                    {{ trade.entry_time|datetimeformat('%Y-%m-%d %H:%M') }}
                                 </div>
                             </div>
                             <div class="row mb-3">
@@ -128,7 +128,7 @@
                                 </div>
                                 <div class="col-6">
                                     {% if trade.exit_time %}
-                                        {{ trade.exit_time.strftime('%Y-%m-%d %H:%M') }}
+                                        {{ trade.exit_time|datetimeformat('%Y-%m-%d %H:%M') }}
                                     {% else %}
                                         <span class="text-muted">-</span>
                                     {% endif %}
@@ -202,9 +202,9 @@
                             </div>
                             <small class="text-muted">
                                 {% if trade.exit_time %}
-                                    {{ trade.entry_time.strftime('%m/%d') }} - {{ trade.exit_time.strftime('%m/%d') }}
+                                    {{ trade.entry_time|datetimeformat('%m/%d') }} - {{ trade.exit_time|datetimeformat('%m/%d') }}
                                 {% else %}
-                                    Since {{ trade.entry_time.strftime('%m/%d') }}
+                                    Since {{ trade.entry_time|datetimeformat('%m/%d') }}
                                 {% endif %}
                             </small>
                         </div>
@@ -319,7 +319,7 @@
                                 <div class="card-body text-center py-2">
                                     <small class="text-muted">
                                         <i class="fas fa-calendar me-1"></i>
-                                        {{ image.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                        {{ image.created_at|datetimeformat('%Y-%m-%d %H:%M') }}
                                     </small>
                                     {% if image.image_type %}
                                     <br>
@@ -489,7 +489,7 @@
                 <div class="alert alert-warning">
                     <strong>Trade Details:</strong><br>
                     #{{ trade.id }} - {{ trade.symbol }} {{ trade.direction }}<br>
-                    Entry: {{ "%.5f"|format(trade.entry_price) }} on {{ trade.entry_time.strftime('%Y-%m-%d') }}
+                    Entry: {{ "%.5f"|format(trade.entry_price) }} on {{ trade.entry_time|datetimeformat('%Y-%m-%d') }}
                 </div>
                 <p class="text-danger mb-0">
                     <strong>Warning:</strong> This action cannot be undone. All trade data and associated screenshots will be permanently deleted.

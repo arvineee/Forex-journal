@@ -107,3 +107,19 @@ The system supports CSV imports and normalizes data. It specifically handles dif
 📝 License
 Distributed under the MIT License.
 
+
+## User timezone support
+
+Each account now has a saved IANA timezone preference. The initial value for existing and new accounts is `Africa/Nairobi`; users can change it under **Account menu → Timezone Settings**, or detect the timezone reported by their device. The preference is account-based and therefore follows the user across devices.
+
+Database timestamps remain stored as naive UTC values for compatibility with the existing SQLite/SQLAlchemy schema. New trade and account-balance form timestamps are interpreted in the user's selected timezone and converted to UTC before storage. Existing records are not rewritten; legacy naive timestamps are displayed as UTC when converted to the user's timezone. If older records were originally entered in a non-UTC server timezone, review those records before relying on historical local-time analytics.
+
+### Applying the database migration
+
+Back up the database first, then deploy the updated files and run:
+
+```bash
+flask db upgrade
+```
+
+This adds `users.timezone` with a safe `Africa/Nairobi` default and does not delete or rewrite existing rows. If your deployment does not use Flask-Migrate, add a `VARCHAR(64)` `timezone` column to `users` with default `Africa/Nairobi` after taking a database backup.

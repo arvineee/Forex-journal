@@ -39,7 +39,7 @@
                             <tbody>
                                 {% for balance in balances %}
                                 <tr>
-                                    <td>{{ balance.date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>{{ balance.date|datetimeformat('%Y-%m-%d %H:%M') }}</td>
                                     <td><strong>${{ "%.2f"|format(balance.balance) }}</strong></td>
                                     <td>{{ balance.notes or '-' }}</td>
                                     <td>
@@ -64,7 +64,7 @@
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                             </div>
                                             <div class="modal-body">
-                                                <p>Delete balance record from {{ balance.date.strftime('%Y-%m-%d') }}?</p>
+                                                <p>Delete balance record from {{ balance.date|datetimeformat('%Y-%m-%d') }}?</p>
                                                 <p><strong>${{ "%.2f"|format(balance.balance) }}</strong></p>
                                             </div>
                                             <div class="modal-footer">
@@ -92,7 +92,7 @@
                     <div class="display-4 text-success mb-3">
                         ${{ "%.2f"|format(balances[0].balance) }}
                     </div>
-                    <p class="text-muted">Last updated: {{ balances[0].date.strftime('%Y-%m-%d') }}</p>
+                    <p class="text-muted">Last updated: {{ balances[0].date|datetimeformat('%Y-%m-%d') }}</p>
                 </div>
             </div>
         </div>
