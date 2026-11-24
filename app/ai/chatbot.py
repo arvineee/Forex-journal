@@ -11,7 +11,7 @@ from typing import List, Dict, Any, Optional
 from flask import current_app
 from app import db
 from app.models import Trade, TradingStrategy
-from app.ai.models import AIInsight, AILearningLog
+from app.ai.models import AIInsight, AILearningLog, AIChartAnalysis
 import numpy as np
 
 logger = logging.getLogger(__name__)

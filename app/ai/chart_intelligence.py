@@ -4,6 +4,7 @@ Vision output is stored as observations. Predictive probabilities are withheld
 until enough user-owned, outcome-labelled chart analyses exist.
 """
 import io
+import time
 import json
 import logging
 import os
@@ -46,6 +47,8 @@ def _image_from_upload(upload):
         image = Image.open(io.BytesIO(raw))
         image.verify()
         image = Image.open(io.BytesIO(raw)).convert("RGB")
+        # Smaller images upload/process much faster and avoid Gemini 504 timeouts.
+        image.thumbnail((1600, 1600))
     except Exception as exc:
         raise ValueError("One of the uploaded files is not a valid image.") from exc
     return filename, raw, image
@@ -182,10 +185,25 @@ be 0.5 unless the trading session/time is actually provided.
     content = [prompt, f"Instrument: {symbol}. User's intended direction: {direction or 'not specified'}."]
     for tf, image in image_payloads:
         content.extend([f"{tf} timeframe chart:", image])
-    response = model.generate_content(
-        content,
-        generation_config={"temperature": 0.1, "response_mime_type": "application/json"},
-    )
+    response = None
+    last_exc = None
+    for attempt in range(3):
+        try:
+            response = model.generate_content(
+                content,
+                generation_config={"temperature": 0.1, "response_mime_type": "application/json"},
+                request_options={"timeout": 150},
+            )
+            break
+        except Exception as exc:  # 504 DeadlineExceeded / 503 ServiceUnavailable are retryable
+            last_exc = exc
+            name = type(exc).__name__
+            if name not in ("DeadlineExceeded", "ServiceUnavailable", "InternalServerError", "ResourceExhausted"):
+                raise
+            logger.warning("Gemini attempt %s failed (%s); retrying", attempt + 1, name)
+            time.sleep(2 * (attempt + 1))
+    if response is None:
+        raise RuntimeError("The AI service timed out. Please try again in a minute.") from last_exc
     text = (getattr(response, "text", "") or "").strip()
     text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text, flags=re.I)
     parsed = _normalise_analysis(json.loads(text))
