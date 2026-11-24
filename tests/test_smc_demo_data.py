@@ -64,6 +64,23 @@ class SMCDemoManifestTests(unittest.TestCase):
             self.assertNotIn("RESULT", s["images"])
 
 
+@unittest.skipUnless(os.path.exists(MANIFEST), "run smc_demo/generate_smc_demo.py first")
+class SMCManualTradeTests(unittest.TestCase):
+    def test_manual_trades_are_not_seeded_and_have_all_charts(self):
+        manual = os.path.join(DATA, "..", "manual_trades")
+        if not os.path.isdir(manual):
+            self.skipTest("run smc_demo/generate_manual_trades.py first")
+        with open(MANIFEST, encoding="utf-8") as handle:
+            seeded = {s["n"] for s in json.load(handle)["scenarios"]}
+        self.assertFalse(seeded & {51, 52, 53})
+        folders = [d for d in os.listdir(manual) if d.startswith("trade_")]
+        self.assertEqual(len(folders), 3)
+        for folder in folders:
+            files = os.listdir(os.path.join(manual, folder))
+            for tf in TIMEFRAMES:
+                self.assertTrue(any(f.endswith(f"_{tf}.png") and not f.startswith("RESULT") for f in files), (folder, tf))
+
+
 class SMCGeneratorTests(unittest.TestCase):
     def test_same_seed_reproduces_the_same_trade(self):
         gen = _load_generator()
@@ -72,6 +89,11 @@ class SMCGeneratorTests(unittest.TestCase):
         b = gen.build_scenario(1, 7, "EURUSD", "BUY", day)
         self.assertEqual((a["entry_price"], a["exit_price"], a["outcome"]),
                          (b["entry_price"], b["exit_price"], b["outcome"]))
+
+    def test_extra_setups_do_not_move_the_original_days(self):
+        gen = _load_generator()
+        self.assertEqual(gen.pick_days(50)[:30], gen.pick_days(30))
+        self.assertEqual(len({d.date() for d in gen.pick_days(50)}), 50)
 
     def test_chart_inputs_stop_at_entry_candle(self):
         gen = _load_generator()

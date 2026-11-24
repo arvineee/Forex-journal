@@ -492,12 +492,25 @@ def journal_text(sc):
 
 
 # --------------------------------------------------------------------------- main
-def pick_days(count):
+def _all_days():
     days, d = [], datetime(2026, 6, 1)
     while d <= datetime(2026, 11, 19):
         if d.weekday() <= 3: days.append(d)   # Mon-Thu, so forward window never hits Friday close
         d += timedelta(days=1)
-    return [days[i] for i in np.linspace(0, len(days) - 1, count).astype(int)]
+    return days
+
+
+def pick_days(count, base_count=30):
+    """The first `base_count` setups keep the original evenly-spread days (so existing demo data never
+    changes); any setups beyond that are spread over the remaining unused days."""
+    days = _all_days()
+    first = [days[i] for i in np.linspace(0, len(days) - 1, min(count, base_count)).astype(int)]
+    if count <= base_count:
+        return first
+    used = {d.date() for d in first}
+    free = [d for d in days if d.date() not in used]
+    extra = count - base_count
+    return first + [free[i] for i in np.linspace(0, len(free) - 1, extra).astype(int)]
 
 
 def main():
@@ -506,15 +519,28 @@ def main():
     ap.add_argument("--seed", type=int, default=2026)
     ap.add_argument("--out", default=os.path.join(HERE, "data"))
     ap.add_argument("--no-results", action="store_true", help="skip the post-trade result charts")
+    ap.add_argument("--append", action="store_true",
+                    help="keep the setups already in scenarios.json and only generate the new ones up to --count")
     a = ap.parse_args()
     os.makedirs(os.path.join(a.out, "charts"), exist_ok=True)
     os.makedirs(os.path.join(a.out, "results"), exist_ok=True)
     rng = np.random.default_rng(a.seed)
     syms = list(SYMBOLS)
     out, days = [], pick_days(a.count)
+    existing = []
+    manifest_path = os.path.join(a.out, "scenarios.json")
+    if a.append and os.path.exists(manifest_path):
+        with open(manifest_path, encoding="utf-8") as fh:
+            prev = json.load(fh)
+        if prev.get("seed") != a.seed:
+            sys.exit("--append needs the same --seed as the existing manifest")
+        existing = prev["scenarios"]
     for i in range(a.count):
+        # the symbol/direction draws stay sequential so setup i is identical whatever --count is
         symbol = syms[i % len(syms)] if i % 7 else syms[int(rng.integers(len(syms)))]
         direction = "BUY" if rng.random() < 0.5 else "SELL"
+        if i < len(existing):
+            out.append(existing[i]); continue
         sc = build_scenario(i + 1, a.seed * 1000 + i, symbol, direction, days[i])
         files = {}
         for tf in TFS:

@@ -2848,6 +2848,1901 @@
    "emotions": "disciplined",
    "mistakes": "",
    "rating": 5
+  },
+  {
+   "n": 31,
+   "symbol": "EURUSD",
+   "direction": "SELL",
+   "strategy": "SMC Liquidity Sweep + OB/FVG",
+   "entry_price": 1.10163,
+   "exit_price": 1.0979,
+   "sl": 1.103,
+   "tp": 1.0979,
+   "size": 0.73,
+   "pnl": 272.29,
+   "pnl_percent": 0.34,
+   "outcome": "win",
+   "planned_rr": 2.73,
+   "entry_time": "2026-06-02T10:45:00",
+   "exit_time": "2026-06-03T12:00:00",
+   "smc_confluence": 0.657,
+   "images": {
+    "4H": "smc31_EURUSD_SELL_4H.png",
+    "1H": "smc31_EURUSD_SELL_1H.png",
+    "30M": "smc31_EURUSD_SELL_30M.png",
+    "15M": "smc31_EURUSD_SELL_15M.png"
+   },
+   "result_image": "smc31_EURUSD_SELL_RESULT_15M.png",
+   "analysis": {
+    "market_bias": "range",
+    "setup_direction": "SELL",
+    "setup_type": "Partial SMC sequence: BSL sweep -> CHoCH -> order-block retest",
+    "timeframes": {
+     "4H": {
+      "bias": "range",
+      "structure": "Range 4H structure; trade is not with the higher-timeframe flow",
+      "liquidity": "External SSL resting beyond the recent range; BSL side already visited",
+      "key_levels": "Setup zone near 1.10163",
+      "confidence": 0.7
+     },
+     "1H": {
+      "bias": "range",
+      "structure": "Dealing range between 1.10270 and 1.09949; entry at 33% of the leg",
+      "liquidity": "Asian high 1.09793 swept",
+      "key_levels": "Asian range 1.10165 - 1.09793",
+      "confidence": 0.69
+     },
+     "30M": {
+      "bias": "bearish",
+      "structure": "CHoCH not confirmed at 1.09957",
+      "liquidity": "BSL taken at 1.10270",
+      "key_levels": "OB 1.10160-1.10270; FVG 1.10096-1.10151",
+      "confidence": 0.63
+     },
+     "15M": {
+      "bias": "bearish",
+      "structure": "Retracement completed into order-block retest",
+      "liquidity": "Next target: external SSL / R:R 2.73",
+      "key_levels": "Entry 1.10163, SL 1.10300, TP 1.09790",
+      "confidence": 0.82
+     }
+    },
+    "features": {
+     "trend_alignment": 0.511,
+     "structure_quality": 0.45,
+     "liquidity_sweep": 0.875,
+     "asian_range_sweep": 0.88,
+     "london_liquidity_sweep": 0.866,
+     "bos_choch_confirmation": 0.37,
+     "order_block_quality": 0.589,
+     "fvg_quality": 0.691,
+     "ob_fvg_retracement": 0.828,
+     "premium_discount_location": 0.694,
+     "entry_location": 0.909,
+     "risk_reward_quality": 0.661,
+     "session_quality": 0.824
+    },
+    "confluences": [
+     "BSL swept below/above the Asian range into 1.10270",
+     "Fair value gap left by the displacement",
+     "Entry in premium of the S-H range (33% retrace level)"
+    ],
+    "conflicts": [
+     "4H bias is range - trade is against higher-timeframe flow",
+     "Structure break was wick-only; CHoCH not confirmed by a body close"
+    ],
+    "invalidation": "A body close beyond 1.10270 (the sweep extreme) invalidates the sequence.",
+    "summary": "Partial SMC sequence on EURUSD (SELL). Aligned: 3 factors, conflicts: 2. Entry via order-block retest at 33% of the displacement leg.",
+    "risk_notes": [
+     "Invalidation: close beyond the sweep extreme 1.10270",
+     "Planned R:R about 1:2.73"
+    ],
+    "chart_readability": "clear"
+   },
+   "notes": "[DEMO] SMC setup #31 - EURUSD SELL. Synthetic chart + simulated trade.",
+   "emotions": "confident",
+   "mistakes": "",
+   "rating": 4
+  },
+  {
+   "n": 32,
+   "symbol": "GBPUSD",
+   "direction": "BUY",
+   "strategy": "SMC Liquidity Sweep + OB/FVG",
+   "entry_price": 1.28487,
+   "exit_price": 1.28971,
+   "sl": 1.2832,
+   "tp": 1.28971,
+   "size": 0.6,
+   "pnl": 290.4,
+   "pnl_percent": 0.38,
+   "outcome": "win",
+   "planned_rr": 2.91,
+   "entry_time": "2026-06-09T10:45:00",
+   "exit_time": "2026-06-10T08:15:00",
+   "smc_confluence": 0.578,
+   "images": {
+    "4H": "smc32_GBPUSD_BUY_4H.png",
+    "1H": "smc32_GBPUSD_BUY_1H.png",
+    "30M": "smc32_GBPUSD_BUY_30M.png",
+    "15M": "smc32_GBPUSD_BUY_15M.png"
+   },
+   "result_image": "smc32_GBPUSD_BUY_RESULT_15M.png",
+   "analysis": {
+    "market_bias": "range",
+    "setup_direction": "BUY",
+    "setup_type": "Partial SMC sequence: SSL sweep -> CHoCH -> FVG consequent-encroachment entry",
+    "timeframes": {
+     "4H": {
+      "bias": "range",
+      "structure": "Range 4H structure; trade is not with the higher-timeframe flow",
+      "liquidity": "External BSL resting beyond the recent range; SSL side already visited",
+      "key_levels": "Setup zone near 1.28487",
+      "confidence": 0.72
+     },
+     "1H": {
+      "bias": "range",
+      "structure": "Dealing range between 1.28362 and 1.28623; entry at 48% of the leg",
+      "liquidity": "Asian low 1.28453 swept",
+      "key_levels": "Asian range 1.28453 - 1.28755",
+      "confidence": 0.69
+     },
+     "30M": {
+      "bias": "bullish",
+      "structure": "CHoCH not confirmed at 1.28635",
+      "liquidity": "SSL taken at 1.28362",
+      "key_levels": "OB 1.28362-1.28472; FVG 1.28450-1.28523",
+      "confidence": 0.55
+     },
+     "15M": {
+      "bias": "bullish",
+      "structure": "Retracement completed into FVG consequent-encroachment entry",
+      "liquidity": "Next target: external BSL / R:R 2.91",
+      "key_levels": "Entry 1.28487, SL 1.28320, TP 1.28971",
+      "confidence": 0.75
+     }
+    },
+    "features": {
+     "trend_alignment": 0.555,
+     "structure_quality": 0.474,
+     "liquidity_sweep": 0.795,
+     "asian_range_sweep": 0.674,
+     "london_liquidity_sweep": 0.774,
+     "bos_choch_confirmation": 0.152,
+     "order_block_quality": 0.485,
+     "fvg_quality": 0.711,
+     "ob_fvg_retracement": 0.787,
+     "premium_discount_location": 0.517,
+     "entry_location": 0.726,
+     "risk_reward_quality": 0.583,
+     "session_quality": 0.744
+    },
+    "confluences": [
+     "SSL swept below/above the Asian range into 1.28362",
+     "Fair value gap left by the displacement",
+     "Entry in discount of the S-H range (48% retrace level)"
+    ],
+    "conflicts": [
+     "4H bias is range - trade is against higher-timeframe flow",
+     "Structure break was wick-only; CHoCH not confirmed by a body close"
+    ],
+    "invalidation": "A body close beyond 1.28362 (the sweep extreme) invalidates the sequence.",
+    "summary": "Partial SMC sequence on GBPUSD (BUY). Aligned: 3 factors, conflicts: 2. Entry via FVG consequent-encroachment entry at 48% of the displacement leg.",
+    "risk_notes": [
+     "Invalidation: close beyond the sweep extreme 1.28362",
+     "Planned R:R about 1:2.91"
+    ],
+    "chart_readability": "clear"
+   },
+   "notes": "[DEMO] SMC setup #32 - GBPUSD BUY. Synthetic chart + simulated trade.",
+   "emotions": "neutral",
+   "mistakes": "",
+   "rating": 4
+  },
+  {
+   "n": 33,
+   "symbol": "AUDUSD",
+   "direction": "SELL",
+   "strategy": "SMC Liquidity Sweep + OB/FVG",
+   "entry_price": 0.65442,
+   "exit_price": 0.65562,
+   "sl": 0.65562,
+   "tp": 0.65093,
+   "size": 0.83,
+   "pnl": -99.6,
+   "pnl_percent": -0.18,
+   "outcome": "loss",
+   "planned_rr": 2.89,
+   "entry_time": "2026-06-18T11:00:00",
+   "exit_time": "2026-06-19T08:45:00",
+   "smc_confluence": 0.461,
+   "images": {
+    "4H": "smc33_AUDUSD_SELL_4H.png",
+    "1H": "smc33_AUDUSD_SELL_1H.png",
+    "30M": "smc33_AUDUSD_SELL_30M.png",
+    "15M": "smc33_AUDUSD_SELL_15M.png"
+   },
+   "result_image": "smc33_AUDUSD_SELL_RESULT_15M.png",
+   "analysis": {
+    "market_bias": "range",
+    "setup_direction": "SELL",
+    "setup_type": "Weak / forced SMC setup: BSL sweep -> CHoCH -> equilibrium entry",
+    "timeframes": {
+     "4H": {
+      "bias": "range",
+      "structure": "Range 4H structure; trade is not with the higher-timeframe flow",
+      "liquidity": "External SSL resting beyond the recent range; BSL side already visited",
+      "key_levels": "Setup zone near 0.65442",
+      "confidence": 0.68
+     },
+     "1H": {
+      "bias": "range",
+      "structure": "Dealing range between 0.65537 and 0.65343; entry at 49% of the leg",
+      "liquidity": "Asian high 0.65285 swept",
+      "key_levels": "Asian range 0.65476 - 0.65285",
+      "confidence": 0.69
+     },
+     "30M": {
+      "bias": "bearish",
+      "structure": "CHoCH confirmed at 0.65380",
+      "liquidity": "BSL taken at 0.65537",
+      "key_levels": "OB 0.65493-0.65537",
+      "confidence": 0.73
+     },
+     "15M": {
+      "bias": "bearish",
+      "structure": "Retracement completed into equilibrium entry",
+      "liquidity": "Next target: external SSL / R:R 2.89",
+      "key_levels": "Entry 0.65442, SL 0.65562, TP 0.65093",
+      "confidence": 0.62
+     }
+    },
+    "features": {
+     "trend_alignment": 0.445,
+     "structure_quality": 0.476,
+     "liquidity_sweep": 0.786,
+     "asian_range_sweep": 0.792,
+     "london_liquidity_sweep": 0.763,
+     "bos_choch_confirmation": 0.646,
+     "order_block_quality": 0.404,
+     "fvg_quality": 0.038,
+     "ob_fvg_retracement": 0.469,
+     "premium_discount_location": 0.551,
+     "entry_location": 0.34,
+     "risk_reward_quality": 0.686,
+     "session_quality": 0.865
+    },
+    "confluences": [
+     "BSL swept below/above the Asian range into 0.65537",
+     "Displacement closed through the minor structure level (CHoCH)",
+     "Entry in premium of the S-H range (49% retrace level)"
+    ],
+    "conflicts": [
+     "4H bias is range - trade is against higher-timeframe flow",
+     "No clean FVG in the displacement leg"
+    ],
+    "invalidation": "A body close beyond 0.65537 (the sweep extreme) invalidates the sequence.",
+    "summary": "Weak / forced SMC setup on AUDUSD (SELL). Aligned: 3 factors, conflicts: 2. Entry via equilibrium entry at 49% of the displacement leg.",
+    "risk_notes": [
+     "Invalidation: close beyond the sweep extreme 0.65537",
+     "Planned R:R about 1:2.89"
+    ],
+    "chart_readability": "clear"
+   },
+   "notes": "[DEMO] SMC setup #33 - AUDUSD SELL. Synthetic chart + simulated trade.",
+   "emotions": "anxious",
+   "mistakes": "Traded against the 4h bias.",
+   "rating": 2
+  },
+  {
+   "n": 34,
+   "symbol": "USDJPY",
+   "direction": "SELL",
+   "strategy": "SMC Liquidity Sweep + OB/FVG",
+   "entry_price": 152.161,
+   "exit_price": 152.342,
+   "sl": 152.342,
+   "tp": 151.745,
+   "size": 0.84,
+   "pnl": -99.8,
+   "pnl_percent": -0.0,
+   "outcome": "loss",
+   "planned_rr": 2.3,
+   "entry_time": "2026-06-25T10:00:00",
+   "exit_time": "2026-06-25T13:00:00",
+   "smc_confluence": 0.726,
+   "images": {
+    "4H": "smc34_USDJPY_SELL_4H.png",
+    "1H": "smc34_USDJPY_SELL_1H.png",
+    "30M": "smc34_USDJPY_SELL_30M.png",
+    "15M": "smc34_USDJPY_SELL_15M.png"
+   },
+   "result_image": "smc34_USDJPY_SELL_RESULT_15M.png",
+   "analysis": {
+    "market_bias": "range",
+    "setup_direction": "SELL",
+    "setup_type": "A+ SMC sequence: BSL sweep -> CHoCH -> order-block retest",
+    "timeframes": {
+     "4H": {
+      "bias": "range",
+      "structure": "Range 4H structure; trade is not with the higher-timeframe flow",
+      "liquidity": "External SSL resting beyond the recent range; BSL side already visited",
+      "key_levels": "Setup zone near 152.161",
+      "confidence": 0.73
+     },
+     "1H": {
+      "bias": "range",
+      "structure": "Dealing range between 152.305 and 151.964; entry at 42% of the leg",
+      "liquidity": "Asian high 151.855 swept",
+      "key_levels": "Asian range 152.207 - 151.855",
+      "confidence": 0.7
+     },
+     "30M": {
+      "bias": "bearish",
+      "structure": "CHoCH confirmed at 151.992",
+      "liquidity": "BSL taken at 152.305",
+      "key_levels": "OB 152.157-152.305; FVG 152.048-152.178",
+      "confidence": 0.74
+     },
+     "15M": {
+      "bias": "bearish",
+      "structure": "Retracement completed into order-block retest",
+      "liquidity": "Next target: external SSL / R:R 2.3",
+      "key_levels": "Entry 152.161, SL 152.342, TP 151.745",
+      "confidence": 0.77
+     }
+    },
+    "features": {
+     "trend_alignment": 0.596,
+     "structure_quality": 0.511,
+     "liquidity_sweep": 0.738,
+     "asian_range_sweep": 0.778,
+     "london_liquidity_sweep": 0.778,
+     "bos_choch_confirmation": 0.696,
+     "order_block_quality": 0.695,
+     "fvg_quality": 0.998,
+     "ob_fvg_retracement": 0.895,
+     "premium_discount_location": 0.625,
+     "entry_location": 0.784,
+     "risk_reward_quality": 0.468,
+     "session_quality": 0.832
+    },
+    "confluences": [
+     "BSL swept below/above the Asian range into 152.305",
+     "Displacement closed through the minor structure level (CHoCH)",
+     "Fair value gap left by the displacement",
+     "Entry in premium of the S-H range (42% retrace level)"
+    ],
+    "conflicts": [
+     "4H bias is range - trade is against higher-timeframe flow"
+    ],
+    "invalidation": "A body close beyond 152.305 (the sweep extreme) invalidates the sequence.",
+    "summary": "A+ SMC sequence on USDJPY (SELL). Aligned: 4 factors, conflicts: 1. Entry via order-block retest at 42% of the displacement leg.",
+    "risk_notes": [
+     "Invalidation: close beyond the sweep extreme 152.305",
+     "Planned R:R about 1:2.3"
+    ],
+    "chart_readability": "clear"
+   },
+   "notes": "[DEMO] SMC setup #34 - USDJPY SELL. Synthetic chart + simulated trade.",
+   "emotions": "neutral",
+   "mistakes": "Traded against the 4h bias.",
+   "rating": 4
+  },
+  {
+   "n": 35,
+   "symbol": "GBPJPY",
+   "direction": "BUY",
+   "strategy": "SMC Liquidity Sweep + OB/FVG",
+   "entry_price": 190.794,
+   "exit_price": 191.483,
+   "sl": 190.525,
+   "tp": 191.483,
+   "size": 0.54,
+   "pnl": 254.54,
+   "pnl_percent": 0.0,
+   "outcome": "win",
+   "planned_rr": 2.57,
+   "entry_time": "2026-07-07T10:45:00",
+   "exit_time": "2026-07-08T07:45:00",
+   "smc_confluence": 0.764,
+   "images": {
+    "4H": "smc35_GBPJPY_BUY_4H.png",
+    "1H": "smc35_GBPJPY_BUY_1H.png",
+    "30M": "smc35_GBPJPY_BUY_30M.png",
+    "15M": "smc35_GBPJPY_BUY_15M.png"
+   },
+   "result_image": "smc35_GBPJPY_BUY_RESULT_15M.png",
+   "analysis": {
+    "market_bias": "range",
+    "setup_direction": "BUY",
+    "setup_type": "A+ SMC sequence: SSL sweep -> CHoCH -> order-block retest",
+    "timeframes": {
+     "4H": {
+      "bias": "range",
+      "structure": "Range 4H structure; trade is not with the higher-timeframe flow",
+      "liquidity": "External BSL resting beyond the recent range; SSL side already visited",
+      "key_levels": "Setup zone near 190.794",
+      "confidence": 0.72
+     },
+     "1H": {
+      "bias": "range",
+      "structure": "Dealing range between 190.584 and 191.265; entry at 31% of the leg",
+      "liquidity": "Asian low 190.760 swept",
+      "key_levels": "Asian range 190.760 - 191.390",
+      "confidence": 0.67
+     },
+     "30M": {
+      "bias": "bullish",
+      "structure": "CHoCH confirmed at 191.078",
+      "liquidity": "SSL taken at 190.584",
+      "key_levels": "OB 190.584-190.800; FVG 190.801-190.943",
+      "confidence": 0.84
+     },
+     "15M": {
+      "bias": "bullish",
+      "structure": "Retracement completed into order-block retest",
+      "liquidity": "Next target: external BSL / R:R 2.57",
+      "key_levels": "Entry 190.794, SL 190.525, TP 191.483",
+      "confidence": 0.81
+     }
+    },
+    "features": {
+     "trend_alignment": 0.561,
+     "structure_quality": 0.41,
+     "liquidity_sweep": 0.764,
+     "asian_range_sweep": 0.855,
+     "london_liquidity_sweep": 0.803,
+     "bos_choch_confirmation": 0.976,
+     "order_block_quality": 0.771,
+     "fvg_quality": 0.896,
+     "ob_fvg_retracement": 0.89,
+     "premium_discount_location": 0.725,
+     "entry_location": 0.88,
+     "risk_reward_quality": 0.578,
+     "session_quality": 0.864
+    },
+    "confluences": [
+     "SSL swept below/above the Asian range into 190.584",
+     "Displacement closed through the minor structure level (CHoCH)",
+     "Fair value gap left by the displacement",
+     "Entry in discount of the S-H range (31% retrace level)"
+    ],
+    "conflicts": [
+     "4H bias is range - trade is against higher-timeframe flow"
+    ],
+    "invalidation": "A body close beyond 190.584 (the sweep extreme) invalidates the sequence.",
+    "summary": "A+ SMC sequence on GBPJPY (BUY). Aligned: 4 factors, conflicts: 1. Entry via order-block retest at 31% of the displacement leg.",
+    "risk_notes": [
+     "Invalidation: close beyond the sweep extreme 190.584",
+     "Planned R:R about 1:2.57"
+    ],
+    "chart_readability": "clear"
+   },
+   "notes": "[DEMO] SMC setup #35 - GBPJPY BUY. Synthetic chart + simulated trade.",
+   "emotions": "neutral",
+   "mistakes": "",
+   "rating": 4
+  },
+  {
+   "n": 36,
+   "symbol": "GBPUSD",
+   "direction": "SELL",
+   "strategy": "SMC Liquidity Sweep + OB/FVG",
+   "entry_price": 1.30583,
+   "exit_price": 1.30142,
+   "sl": 1.30765,
+   "tp": 1.30142,
+   "size": 0.55,
+   "pnl": 242.55,
+   "pnl_percent": 0.34,
+   "outcome": "win",
+   "planned_rr": 2.43,
+   "entry_time": "2026-07-15T10:45:00",
+   "exit_time": "2026-07-16T12:00:00",
+   "smc_confluence": 0.749,
+   "images": {
+    "4H": "smc36_GBPUSD_SELL_4H.png",
+    "1H": "smc36_GBPUSD_SELL_1H.png",
+    "30M": "smc36_GBPUSD_SELL_30M.png",
+    "15M": "smc36_GBPUSD_SELL_15M.png"
+   },
+   "result_image": "smc36_GBPUSD_SELL_RESULT_15M.png",
+   "analysis": {
+    "market_bias": "range",
+    "setup_direction": "SELL",
+    "setup_type": "A+ SMC sequence: BSL sweep -> CHoCH -> order-block retest",
+    "timeframes": {
+     "4H": {
+      "bias": "range",
+      "structure": "Range 4H structure; trade is not with the higher-timeframe flow",
+      "liquidity": "External SSL resting beyond the recent range; BSL side already visited",
+      "key_levels": "Setup zone near 1.30583",
+      "confidence": 0.74
+     },
+     "1H": {
+      "bias": "range",
+      "structure": "Dealing range between 1.30725 and 1.30332; entry at 36% of the leg",
+      "liquidity": "Asian high 1.30255 swept",
+      "key_levels": "Asian range 1.30644 - 1.30255",
+      "confidence": 0.7
+     },
+     "30M": {
+      "bias": "bearish",
+      "structure": "CHoCH confirmed at 1.30434",
+      "liquidity": "BSL taken at 1.30725",
+      "key_levels": "OB 1.30579-1.30725; FVG 1.30527-1.30591",
+      "confidence": 0.84
+     },
+     "15M": {
+      "bias": "bearish",
+      "structure": "Retracement completed into order-block retest",
+      "liquidity": "Next target: external SSL / R:R 2.43",
+      "key_levels": "Entry 1.30583, SL 1.30765, TP 1.30142",
+      "confidence": 0.8
+     }
+    },
+    "features": {
+     "trend_alignment": 0.63,
+     "structure_quality": 0.509,
+     "liquidity_sweep": 0.821,
+     "asian_range_sweep": 0.74,
+     "london_liquidity_sweep": 0.767,
+     "bos_choch_confirmation": 0.974,
+     "order_block_quality": 0.791,
+     "fvg_quality": 0.58,
+     "ob_fvg_retracement": 0.906,
+     "premium_discount_location": 0.683,
+     "entry_location": 0.845,
+     "risk_reward_quality": 0.472,
+     "session_quality": 0.796
+    },
+    "confluences": [
+     "BSL swept below/above the Asian range into 1.30725",
+     "Displacement closed through the minor structure level (CHoCH)",
+     "Fair value gap left by the displacement",
+     "Entry in premium of the S-H range (36% retrace level)"
+    ],
+    "conflicts": [
+     "4H bias is range - trade is against higher-timeframe flow"
+    ],
+    "invalidation": "A body close beyond 1.30725 (the sweep extreme) invalidates the sequence.",
+    "summary": "A+ SMC sequence on GBPUSD (SELL). Aligned: 4 factors, conflicts: 1. Entry via order-block retest at 36% of the displacement leg.",
+    "risk_notes": [
+     "Invalidation: close beyond the sweep extreme 1.30725",
+     "Planned R:R about 1:2.43"
+    ],
+    "chart_readability": "clear"
+   },
+   "notes": "[DEMO] SMC setup #36 - GBPUSD SELL. Synthetic chart + simulated trade.",
+   "emotions": "disciplined",
+   "mistakes": "",
+   "rating": 4
+  },
+  {
+   "n": 37,
+   "symbol": "EURUSD",
+   "direction": "BUY",
+   "strategy": "SMC Liquidity Sweep + OB/FVG",
+   "entry_price": 1.10865,
+   "exit_price": 1.11231,
+   "sl": 1.10716,
+   "tp": 1.11231,
+   "size": 0.67,
+   "pnl": 245.22,
+   "pnl_percent": 0.33,
+   "outcome": "win",
+   "planned_rr": 2.45,
+   "entry_time": "2026-07-23T10:30:00",
+   "exit_time": "2026-07-23T17:00:00",
+   "smc_confluence": 0.613,
+   "images": {
+    "4H": "smc37_EURUSD_BUY_4H.png",
+    "1H": "smc37_EURUSD_BUY_1H.png",
+    "30M": "smc37_EURUSD_BUY_30M.png",
+    "15M": "smc37_EURUSD_BUY_15M.png"
+   },
+   "result_image": "smc37_EURUSD_BUY_RESULT_15M.png",
+   "analysis": {
+    "market_bias": "bullish",
+    "setup_direction": "BUY",
+    "setup_type": "Partial SMC sequence: SSL sweep -> CHoCH -> FVG consequent-encroachment entry",
+    "timeframes": {
+     "4H": {
+      "bias": "bullish",
+      "structure": "Bullish 4H structure; trade is with the higher-timeframe flow",
+      "liquidity": "External BSL resting beyond the recent range; SSL side already visited",
+      "key_levels": "Setup zone near 1.10865",
+      "confidence": 0.74
+     },
+     "1H": {
+      "bias": "bullish",
+      "structure": "Dealing range between 1.10745 and 1.11007; entry at 46% of the leg",
+      "liquidity": "Asian low 1.10838 swept",
+      "key_levels": "Asian range 1.10838 - 1.11193",
+      "confidence": 0.74
+     },
+     "30M": {
+      "bias": "bullish",
+      "structure": "CHoCH not confirmed at 1.11058",
+      "liquidity": "SSL taken at 1.10745",
+      "key_levels": "OB 1.10745-1.10839; FVG 1.10835-1.10895",
+      "confidence": 0.57
+     },
+     "15M": {
+      "bias": "bullish",
+      "structure": "Retracement completed into FVG consequent-encroachment entry",
+      "liquidity": "Next target: external BSL / R:R 2.45",
+      "key_levels": "Entry 1.10865, SL 1.10716, TP 1.11231",
+      "confidence": 0.76
+     }
+    },
+    "features": {
+     "trend_alignment": 0.647,
+     "structure_quality": 0.625,
+     "liquidity_sweep": 0.812,
+     "asian_range_sweep": 0.83,
+     "london_liquidity_sweep": 0.827,
+     "bos_choch_confirmation": 0.192,
+     "order_block_quality": 0.409,
+     "fvg_quality": 0.742,
+     "ob_fvg_retracement": 0.802,
+     "premium_discount_location": 0.545,
+     "entry_location": 0.743,
+     "risk_reward_quality": 0.469,
+     "session_quality": 0.77
+    },
+    "confluences": [
+     "4H bias agrees with trade direction",
+     "SSL swept below/above the Asian range into 1.10745",
+     "Fair value gap left by the displacement",
+     "Entry in discount of the S-H range (46% retrace level)"
+    ],
+    "conflicts": [
+     "Structure break was wick-only; CHoCH not confirmed by a body close"
+    ],
+    "invalidation": "A body close beyond 1.10745 (the sweep extreme) invalidates the sequence.",
+    "summary": "Partial SMC sequence on EURUSD (BUY). Aligned: 4 factors, conflicts: 1. Entry via FVG consequent-encroachment entry at 46% of the displacement leg.",
+    "risk_notes": [
+     "Invalidation: close beyond the sweep extreme 1.10745",
+     "Planned R:R about 1:2.45"
+    ],
+    "chart_readability": "clear"
+   },
+   "notes": "[DEMO] SMC setup #37 - EURUSD BUY. Synthetic chart + simulated trade.",
+   "emotions": "confident",
+   "mistakes": "",
+   "rating": 4
+  },
+  {
+   "n": 38,
+   "symbol": "GBPUSD",
+   "direction": "SELL",
+   "strategy": "SMC Liquidity Sweep + OB/FVG",
+   "entry_price": 1.30682,
+   "exit_price": 1.30231,
+   "sl": 1.30827,
+   "tp": 1.30231,
+   "size": 0.69,
+   "pnl": 311.19,
+   "pnl_percent": 0.35,
+   "outcome": "win",
+   "planned_rr": 3.12,
+   "entry_time": "2026-08-03T11:15:00",
+   "exit_time": "2026-08-04T20:15:00",
+   "smc_confluence": 0.629,
+   "images": {
+    "4H": "smc38_GBPUSD_SELL_4H.png",
+    "1H": "smc38_GBPUSD_SELL_1H.png",
+    "30M": "smc38_GBPUSD_SELL_30M.png",
+    "15M": "smc38_GBPUSD_SELL_15M.png"
+   },
+   "result_image": "smc38_GBPUSD_SELL_RESULT_15M.png",
+   "analysis": {
+    "market_bias": "range",
+    "setup_direction": "SELL",
+    "setup_type": "Partial SMC sequence: BSL sweep -> CHoCH -> order-block retest",
+    "timeframes": {
+     "4H": {
+      "bias": "range",
+      "structure": "Range 4H structure; trade is not with the higher-timeframe flow",
+      "liquidity": "External SSL resting beyond the recent range; BSL side already visited",
+      "key_levels": "Setup zone near 1.30682",
+      "confidence": 0.68
+     },
+     "1H": {
+      "bias": "range",
+      "structure": "Dealing range between 1.30789 and 1.30377; entry at 26% of the leg",
+      "liquidity": "Asian high 1.30227 swept",
+      "key_levels": "Asian range 1.30696 - 1.30227",
+      "confidence": 0.69
+     },
+     "30M": {
+      "bias": "bearish",
+      "structure": "CHoCH not confirmed at 1.30411",
+      "liquidity": "BSL taken at 1.30789",
+      "key_levels": "OB 1.30678-1.30789; FVG 1.30585-1.30664",
+      "confidence": 0.62
+     },
+     "15M": {
+      "bias": "bearish",
+      "structure": "Retracement completed into order-block retest",
+      "liquidity": "Next target: external SSL / R:R 3.12",
+      "key_levels": "Entry 1.30682, SL 1.30827, TP 1.30231",
+      "confidence": 0.8
+     }
+    },
+    "features": {
+     "trend_alignment": 0.42,
+     "structure_quality": 0.48,
+     "liquidity_sweep": 0.777,
+     "asian_range_sweep": 0.811,
+     "london_liquidity_sweep": 0.762,
+     "bos_choch_confirmation": 0.353,
+     "order_block_quality": 0.446,
+     "fvg_quality": 0.669,
+     "ob_fvg_retracement": 0.846,
+     "premium_discount_location": 0.821,
+     "entry_location": 0.85,
+     "risk_reward_quality": 0.661,
+     "session_quality": 0.85
+    },
+    "confluences": [
+     "BSL swept below/above the Asian range into 1.30789",
+     "Fair value gap left by the displacement",
+     "Entry in premium of the S-H range (26% retrace level)"
+    ],
+    "conflicts": [
+     "4H bias is range - trade is against higher-timeframe flow",
+     "Structure break was wick-only; CHoCH not confirmed by a body close"
+    ],
+    "invalidation": "A body close beyond 1.30789 (the sweep extreme) invalidates the sequence.",
+    "summary": "Partial SMC sequence on GBPUSD (SELL). Aligned: 3 factors, conflicts: 2. Entry via order-block retest at 26% of the displacement leg.",
+    "risk_notes": [
+     "Invalidation: close beyond the sweep extreme 1.30789",
+     "Planned R:R about 1:3.12"
+    ],
+    "chart_readability": "clear"
+   },
+   "notes": "[DEMO] SMC setup #38 - GBPUSD SELL. Synthetic chart + simulated trade.",
+   "emotions": "neutral",
+   "mistakes": "",
+   "rating": 4
+  },
+  {
+   "n": 39,
+   "symbol": "AUDUSD",
+   "direction": "BUY",
+   "strategy": "SMC Liquidity Sweep + OB/FVG",
+   "entry_price": 0.67693,
+   "exit_price": 0.68036,
+   "sl": 0.67559,
+   "tp": 0.68036,
+   "size": 0.75,
+   "pnl": 257.25,
+   "pnl_percent": 0.51,
+   "outcome": "win",
+   "planned_rr": 2.55,
+   "entry_time": "2026-08-12T11:15:00",
+   "exit_time": "2026-08-13T10:00:00",
+   "smc_confluence": 0.718,
+   "images": {
+    "4H": "smc39_AUDUSD_BUY_4H.png",
+    "1H": "smc39_AUDUSD_BUY_1H.png",
+    "30M": "smc39_AUDUSD_BUY_30M.png",
+    "15M": "smc39_AUDUSD_BUY_15M.png"
+   },
+   "result_image": "smc39_AUDUSD_BUY_RESULT_15M.png",
+   "analysis": {
+    "market_bias": "bullish",
+    "setup_direction": "BUY",
+    "setup_type": "A+ SMC sequence: SSL sweep -> CHoCH -> FVG consequent-encroachment entry",
+    "timeframes": {
+     "4H": {
+      "bias": "bullish",
+      "structure": "Bullish 4H structure; trade is with the higher-timeframe flow",
+      "liquidity": "External BSL resting beyond the recent range; SSL side already visited",
+      "key_levels": "Setup zone near 0.67693",
+      "confidence": 0.74
+     },
+     "1H": {
+      "bias": "bullish",
+      "structure": "Dealing range between 0.67583 and 0.67823; entry at 46% of the leg",
+      "liquidity": "Asian low 0.67640 swept",
+      "key_levels": "Asian range 0.67640 - 0.67927",
+      "confidence": 0.71
+     },
+     "30M": {
+      "bias": "bullish",
+      "structure": "CHoCH confirmed at 0.67771",
+      "liquidity": "SSL taken at 0.67583",
+      "key_levels": "OB 0.67583-0.67683; FVG 0.67657-0.67729",
+      "confidence": 0.76
+     },
+     "15M": {
+      "bias": "bullish",
+      "structure": "Retracement completed into FVG consequent-encroachment entry",
+      "liquidity": "Next target: external BSL / R:R 2.55",
+      "key_levels": "Entry 0.67693, SL 0.67559, TP 0.68036",
+      "confidence": 0.79
+     }
+    },
+    "features": {
+     "trend_alignment": 0.647,
+     "structure_quality": 0.53,
+     "liquidity_sweep": 0.771,
+     "asian_range_sweep": 0.711,
+     "london_liquidity_sweep": 0.741,
+     "bos_choch_confirmation": 0.731,
+     "order_block_quality": 0.748,
+     "fvg_quality": 0.93,
+     "ob_fvg_retracement": 0.797,
+     "premium_discount_location": 0.49,
+     "entry_location": 0.821,
+     "risk_reward_quality": 0.556,
+     "session_quality": 0.745
+    },
+    "confluences": [
+     "4H bias agrees with trade direction",
+     "SSL swept below/above the Asian range into 0.67583",
+     "Displacement closed through the minor structure level (CHoCH)",
+     "Fair value gap left by the displacement",
+     "Entry in discount of the S-H range (46% retrace level)"
+    ],
+    "conflicts": [],
+    "invalidation": "A body close beyond 0.67583 (the sweep extreme) invalidates the sequence.",
+    "summary": "A+ SMC sequence on AUDUSD (BUY). Aligned: 5 factors, conflicts: 0. Entry via FVG consequent-encroachment entry at 46% of the displacement leg.",
+    "risk_notes": [
+     "Invalidation: close beyond the sweep extreme 0.67583",
+     "Planned R:R about 1:2.55"
+    ],
+    "chart_readability": "clear"
+   },
+   "notes": "[DEMO] SMC setup #39 - AUDUSD BUY. Synthetic chart + simulated trade.",
+   "emotions": "disciplined",
+   "mistakes": "",
+   "rating": 4
+  },
+  {
+   "n": 40,
+   "symbol": "USDJPY",
+   "direction": "BUY",
+   "strategy": "SMC Liquidity Sweep + OB/FVG",
+   "entry_price": 153.299,
+   "exit_price": 153.927,
+   "sl": 153.087,
+   "tp": 153.927,
+   "size": 0.72,
+   "pnl": 293.75,
+   "pnl_percent": 0.0,
+   "outcome": "win",
+   "planned_rr": 2.95,
+   "entry_time": "2026-08-19T11:00:00",
+   "exit_time": "2026-08-20T05:00:00",
+   "smc_confluence": 0.888,
+   "images": {
+    "4H": "smc40_USDJPY_BUY_4H.png",
+    "1H": "smc40_USDJPY_BUY_1H.png",
+    "30M": "smc40_USDJPY_BUY_30M.png",
+    "15M": "smc40_USDJPY_BUY_15M.png"
+   },
+   "result_image": "smc40_USDJPY_BUY_RESULT_15M.png",
+   "analysis": {
+    "market_bias": "bullish",
+    "setup_direction": "BUY",
+    "setup_type": "A+ SMC sequence: SSL sweep -> CHoCH -> order-block retest",
+    "timeframes": {
+     "4H": {
+      "bias": "bullish",
+      "structure": "Bullish 4H structure; trade is with the higher-timeframe flow",
+      "liquidity": "External BSL resting beyond the recent range; SSL side already visited",
+      "key_levels": "Setup zone near 153.299",
+      "confidence": 0.8
+     },
+     "1H": {
+      "bias": "bullish",
+      "structure": "Dealing range between 153.126 and 153.544; entry at 42% of the leg",
+      "liquidity": "Asian low 153.275 swept",
+      "key_levels": "Asian range 153.275 - 153.607",
+      "confidence": 0.78
+     },
+     "30M": {
+      "bias": "bullish",
+      "structure": "CHoCH confirmed at 153.417",
+      "liquidity": "SSL taken at 153.126",
+      "key_levels": "OB 153.126-153.303; FVG 153.277-153.396",
+      "confidence": 0.83
+     },
+     "15M": {
+      "bias": "bullish",
+      "structure": "Retracement completed into order-block retest",
+      "liquidity": "Next target: external BSL / R:R 2.95",
+      "key_levels": "Entry 153.299, SL 153.087, TP 153.927",
+      "confidence": 0.82
+     }
+    },
+    "features": {
+     "trend_alignment": 0.841,
+     "structure_quality": 0.781,
+     "liquidity_sweep": 0.993,
+     "asian_range_sweep": 0.943,
+     "london_liquidity_sweep": 0.87,
+     "bos_choch_confirmation": 0.945,
+     "order_block_quality": 0.976,
+     "fvg_quality": 0.949,
+     "ob_fvg_retracement": 0.886,
+     "premium_discount_location": 0.71,
+     "entry_location": 0.913,
+     "risk_reward_quality": 0.661,
+     "session_quality": 0.748
+    },
+    "confluences": [
+     "4H bias agrees with trade direction",
+     "SSL swept below/above the Asian range into 153.126",
+     "Displacement closed through the minor structure level (CHoCH)",
+     "Fair value gap left by the displacement",
+     "Entry in discount of the S-H range (42% retrace level)"
+    ],
+    "conflicts": [],
+    "invalidation": "A body close beyond 153.126 (the sweep extreme) invalidates the sequence.",
+    "summary": "A+ SMC sequence on USDJPY (BUY). Aligned: 5 factors, conflicts: 0. Entry via order-block retest at 42% of the displacement leg.",
+    "risk_notes": [
+     "Invalidation: close beyond the sweep extreme 153.126",
+     "Planned R:R about 1:2.95"
+    ],
+    "chart_readability": "clear"
+   },
+   "notes": "[DEMO] SMC setup #40 - USDJPY BUY. Synthetic chart + simulated trade.",
+   "emotions": "confident",
+   "mistakes": "",
+   "rating": 5
+  },
+  {
+   "n": 41,
+   "symbol": "GBPJPY",
+   "direction": "SELL",
+   "strategy": "SMC Liquidity Sweep + OB/FVG",
+   "entry_price": 196.338,
+   "exit_price": 196.676,
+   "sl": 196.676,
+   "tp": 195.415,
+   "size": 0.44,
+   "pnl": -99.06,
+   "pnl_percent": -0.0,
+   "outcome": "loss",
+   "planned_rr": 2.73,
+   "entry_time": "2026-08-31T10:30:00",
+   "exit_time": "2026-08-31T23:45:00",
+   "smc_confluence": 0.372,
+   "images": {
+    "4H": "smc41_GBPJPY_SELL_4H.png",
+    "1H": "smc41_GBPJPY_SELL_1H.png",
+    "30M": "smc41_GBPJPY_SELL_30M.png",
+    "15M": "smc41_GBPJPY_SELL_15M.png"
+   },
+   "result_image": "smc41_GBPJPY_SELL_RESULT_15M.png",
+   "analysis": {
+    "market_bias": "range",
+    "setup_direction": "SELL",
+    "setup_type": "Weak / forced SMC setup: BSL sweep -> CHoCH -> shallow pullback entry",
+    "timeframes": {
+     "4H": {
+      "bias": "range",
+      "structure": "Range 4H structure; trade is not with the higher-timeframe flow",
+      "liquidity": "External SSL resting beyond the recent range; BSL side already visited",
+      "key_levels": "Setup zone near 196.338",
+      "confidence": 0.68
+     },
+     "1H": {
+      "bias": "range",
+      "structure": "Dealing range between 196.618 and 196.151; entry at 60% of the leg",
+      "liquidity": "Asian high 195.826 swept",
+      "key_levels": "Asian range 196.421 - 195.826",
+      "confidence": 0.72
+     },
+     "30M": {
+      "bias": "bearish",
+      "structure": "CHoCH not confirmed at 196.134",
+      "liquidity": "BSL taken at 196.618",
+      "key_levels": "OB 196.473-196.618",
+      "confidence": 0.59
+     },
+     "15M": {
+      "bias": "bearish",
+      "structure": "Retracement completed into shallow pullback entry",
+      "liquidity": "Next target: external SSL / R:R 2.73",
+      "key_levels": "Entry 196.338, SL 196.676, TP 195.415",
+      "confidence": 0.57
+     }
+    },
+    "features": {
+     "trend_alignment": 0.441,
+     "structure_quality": 0.553,
+     "liquidity_sweep": 0.831,
+     "asian_range_sweep": 0.891,
+     "london_liquidity_sweep": 0.887,
+     "bos_choch_confirmation": 0.251,
+     "order_block_quality": 0.428,
+     "fvg_quality": 0.116,
+     "ob_fvg_retracement": 0.127,
+     "premium_discount_location": 0.407,
+     "entry_location": 0.195,
+     "risk_reward_quality": 0.678,
+     "session_quality": 0.71
+    },
+    "confluences": [
+     "BSL swept below/above the Asian range into 196.618"
+    ],
+    "conflicts": [
+     "4H bias is range - trade is against higher-timeframe flow",
+     "Structure break was wick-only; CHoCH not confirmed by a body close",
+     "No clean FVG in the displacement leg",
+     "Entry is a late/shallow pullback at 60% of the leg - poor location"
+    ],
+    "invalidation": "A body close beyond 196.618 (the sweep extreme) invalidates the sequence.",
+    "summary": "Weak / forced SMC setup on GBPJPY (SELL). Aligned: 1 factors, conflicts: 4. Entry via shallow pullback entry at 60% of the displacement leg.",
+    "risk_notes": [
+     "Invalidation: close beyond the sweep extreme 196.618",
+     "Planned R:R about 1:2.73"
+    ],
+    "chart_readability": "clear"
+   },
+   "notes": "[DEMO] SMC setup #41 - GBPJPY SELL. Synthetic chart + simulated trade.",
+   "emotions": "anxious",
+   "mistakes": "Traded against the 4h bias; entered without a confirmed choch; chased a shallow pullback.",
+   "rating": 2
+  },
+  {
+   "n": 42,
+   "symbol": "XAUUSD",
+   "direction": "BUY",
+   "strategy": "SMC Liquidity Sweep + OB/FVG",
+   "entry_price": 2603.99,
+   "exit_price": 2613.85,
+   "sl": 2600.37,
+   "tp": 2613.85,
+   "size": 0.28,
+   "pnl": 276.08,
+   "pnl_percent": 0.38,
+   "outcome": "win",
+   "planned_rr": 2.73,
+   "entry_time": "2026-09-07T10:30:00",
+   "exit_time": "2026-09-08T03:00:00",
+   "smc_confluence": 0.561,
+   "images": {
+    "4H": "smc42_XAUUSD_BUY_4H.png",
+    "1H": "smc42_XAUUSD_BUY_1H.png",
+    "30M": "smc42_XAUUSD_BUY_30M.png",
+    "15M": "smc42_XAUUSD_BUY_15M.png"
+   },
+   "result_image": "smc42_XAUUSD_BUY_RESULT_15M.png",
+   "analysis": {
+    "market_bias": "bearish",
+    "setup_direction": "BUY",
+    "setup_type": "Partial SMC sequence: SSL sweep -> CHoCH -> FVG consequent-encroachment entry",
+    "timeframes": {
+     "4H": {
+      "bias": "bearish",
+      "structure": "Bearish 4H structure; trade is not with the higher-timeframe flow",
+      "liquidity": "External BSL resting beyond the recent range; SSL side already visited",
+      "key_levels": "Setup zone near 2603.99",
+      "confidence": 0.63
+     },
+     "1H": {
+      "bias": "bearish",
+      "structure": "Dealing range between 2601.19 and 2607.31; entry at 46% of the leg",
+      "liquidity": "Asian low 2602.64 swept",
+      "key_levels": "Asian range 2602.64 - 2612.34",
+      "confidence": 0.75
+     },
+     "30M": {
+      "bias": "bullish",
+      "structure": "CHoCH not confirmed at 2608.47",
+      "liquidity": "SSL taken at 2601.19",
+      "key_levels": "OB 2601.19-2603.10; FVG 2603.24-2604.73",
+      "confidence": 0.59
+     },
+     "15M": {
+      "bias": "bullish",
+      "structure": "Retracement completed into FVG consequent-encroachment entry",
+      "liquidity": "Next target: external BSL / R:R 2.73",
+      "key_levels": "Entry 2603.99, SL 2600.37, TP 2613.85",
+      "confidence": 0.76
+     }
+    },
+    "features": {
+     "trend_alignment": 0.253,
+     "structure_quality": 0.653,
+     "liquidity_sweep": 0.639,
+     "asian_range_sweep": 0.697,
+     "london_liquidity_sweep": 0.701,
+     "bos_choch_confirmation": 0.257,
+     "order_block_quality": 0.429,
+     "fvg_quality": 0.768,
+     "ob_fvg_retracement": 0.771,
+     "premium_discount_location": 0.547,
+     "entry_location": 0.735,
+     "risk_reward_quality": 0.504,
+     "session_quality": 0.812
+    },
+    "confluences": [
+     "SSL swept below/above the Asian range into 2601.19",
+     "Fair value gap left by the displacement",
+     "Entry in discount of the S-H range (46% retrace level)"
+    ],
+    "conflicts": [
+     "4H bias is bearish - trade is against higher-timeframe flow",
+     "Structure break was wick-only; CHoCH not confirmed by a body close"
+    ],
+    "invalidation": "A body close beyond 2601.19 (the sweep extreme) invalidates the sequence.",
+    "summary": "Partial SMC sequence on XAUUSD (BUY). Aligned: 3 factors, conflicts: 2. Entry via FVG consequent-encroachment entry at 46% of the displacement leg.",
+    "risk_notes": [
+     "Invalidation: close beyond the sweep extreme 2601.19",
+     "Planned R:R about 1:2.73"
+    ],
+    "chart_readability": "clear"
+   },
+   "notes": "[DEMO] SMC setup #42 - XAUUSD BUY. Synthetic chart + simulated trade.",
+   "emotions": "disciplined",
+   "mistakes": "",
+   "rating": 4
+  },
+  {
+   "n": 43,
+   "symbol": "USDJPY",
+   "direction": "SELL",
+   "strategy": "SMC Liquidity Sweep + OB/FVG",
+   "entry_price": 151.836,
+   "exit_price": 151.996,
+   "sl": 151.996,
+   "tp": 151.439,
+   "size": 0.95,
+   "pnl": -100.0,
+   "pnl_percent": -0.0,
+   "outcome": "loss",
+   "planned_rr": 2.48,
+   "entry_time": "2026-09-16T11:00:00",
+   "exit_time": "2026-09-16T14:45:00",
+   "smc_confluence": 0.585,
+   "images": {
+    "4H": "smc43_USDJPY_SELL_4H.png",
+    "1H": "smc43_USDJPY_SELL_1H.png",
+    "30M": "smc43_USDJPY_SELL_30M.png",
+    "15M": "smc43_USDJPY_SELL_15M.png"
+   },
+   "result_image": "smc43_USDJPY_SELL_RESULT_15M.png",
+   "analysis": {
+    "market_bias": "range",
+    "setup_direction": "SELL",
+    "setup_type": "Partial SMC sequence: BSL sweep -> CHoCH -> FVG consequent-encroachment entry",
+    "timeframes": {
+     "4H": {
+      "bias": "range",
+      "structure": "Range 4H structure; trade is not with the higher-timeframe flow",
+      "liquidity": "External SSL resting beyond the recent range; BSL side already visited",
+      "key_levels": "Setup zone near 151.836",
+      "confidence": 0.64
+     },
+     "1H": {
+      "bias": "range",
+      "structure": "Dealing range between 151.957 and 151.650; entry at 40% of the leg",
+      "liquidity": "Asian high 151.547 swept",
+      "key_levels": "Asian range 151.866 - 151.547",
+      "confidence": 0.72
+     },
+     "30M": {
+      "bias": "bearish",
+      "structure": "CHoCH not confirmed at 151.686",
+      "liquidity": "BSL taken at 151.957",
+      "key_levels": "OB 151.845-151.957; FVG 151.810-151.861",
+      "confidence": 0.62
+     },
+     "15M": {
+      "bias": "bearish",
+      "structure": "Retracement completed into FVG consequent-encroachment entry",
+      "liquidity": "Next target: external SSL / R:R 2.48",
+      "key_levels": "Entry 151.836, SL 151.996, TP 151.439",
+      "confidence": 0.76
+     }
+    },
+    "features": {
+     "trend_alignment": 0.303,
+     "structure_quality": 0.565,
+     "liquidity_sweep": 0.764,
+     "asian_range_sweep": 0.819,
+     "london_liquidity_sweep": 0.723,
+     "bos_choch_confirmation": 0.345,
+     "order_block_quality": 0.507,
+     "fvg_quality": 0.572,
+     "ob_fvg_retracement": 0.823,
+     "premium_discount_location": 0.643,
+     "entry_location": 0.748,
+     "risk_reward_quality": 0.445,
+     "session_quality": 0.756
+    },
+    "confluences": [
+     "BSL swept below/above the Asian range into 151.957",
+     "Fair value gap left by the displacement",
+     "Entry in premium of the S-H range (40% retrace level)"
+    ],
+    "conflicts": [
+     "4H bias is range - trade is against higher-timeframe flow",
+     "Structure break was wick-only; CHoCH not confirmed by a body close"
+    ],
+    "invalidation": "A body close beyond 151.957 (the sweep extreme) invalidates the sequence.",
+    "summary": "Partial SMC sequence on USDJPY (SELL). Aligned: 3 factors, conflicts: 2. Entry via FVG consequent-encroachment entry at 40% of the displacement leg.",
+    "risk_notes": [
+     "Invalidation: close beyond the sweep extreme 151.957",
+     "Planned R:R about 1:2.48"
+    ],
+    "chart_readability": "clear"
+   },
+   "notes": "[DEMO] SMC setup #43 - USDJPY SELL. Synthetic chart + simulated trade.",
+   "emotions": "greedy",
+   "mistakes": "Traded against the 4h bias; entered without a confirmed choch.",
+   "rating": 3
+  },
+  {
+   "n": 44,
+   "symbol": "GBPUSD",
+   "direction": "BUY",
+   "strategy": "SMC Liquidity Sweep + OB/FVG",
+   "entry_price": 1.33999,
+   "exit_price": 1.34718,
+   "sl": 1.33777,
+   "tp": 1.34718,
+   "size": 0.45,
+   "pnl": 323.55,
+   "pnl_percent": 0.54,
+   "outcome": "win",
+   "planned_rr": 3.24,
+   "entry_time": "2026-09-24T10:45:00",
+   "exit_time": "2026-09-25T12:15:00",
+   "smc_confluence": 0.81,
+   "images": {
+    "4H": "smc44_GBPUSD_BUY_4H.png",
+    "1H": "smc44_GBPUSD_BUY_1H.png",
+    "30M": "smc44_GBPUSD_BUY_30M.png",
+    "15M": "smc44_GBPUSD_BUY_15M.png"
+   },
+   "result_image": "smc44_GBPUSD_BUY_RESULT_15M.png",
+   "analysis": {
+    "market_bias": "bullish",
+    "setup_direction": "BUY",
+    "setup_type": "A+ SMC sequence: SSL sweep -> CHoCH -> order-block retest",
+    "timeframes": {
+     "4H": {
+      "bias": "bullish",
+      "structure": "Bullish 4H structure; trade is with the higher-timeframe flow",
+      "liquidity": "External BSL resting beyond the recent range; SSL side already visited",
+      "key_levels": "Setup zone near 1.33999",
+      "confidence": 0.81
+     },
+     "1H": {
+      "bias": "bullish",
+      "structure": "Dealing range between 1.33817 and 1.34221; entry at 45% of the leg",
+      "liquidity": "Asian low 1.33982 swept",
+      "key_levels": "Asian range 1.33982 - 1.34291",
+      "confidence": 0.8
+     },
+     "30M": {
+      "bias": "bullish",
+      "structure": "CHoCH confirmed at 1.34171",
+      "liquidity": "SSL taken at 1.33817",
+      "key_levels": "OB 1.33817-1.34003; FVG 1.33971-1.34101",
+      "confidence": 0.74
+     },
+     "15M": {
+      "bias": "bullish",
+      "structure": "Retracement completed into order-block retest",
+      "liquidity": "Next target: external BSL / R:R 3.24",
+      "key_levels": "Entry 1.33999, SL 1.33777, TP 1.34718",
+      "confidence": 0.79
+     }
+    },
+    "features": {
+     "trend_alignment": 0.854,
+     "structure_quality": 0.817,
+     "liquidity_sweep": 0.994,
+     "asian_range_sweep": 0.901,
+     "london_liquidity_sweep": 0.995,
+     "bos_choch_confirmation": 0.686,
+     "order_block_quality": 0.731,
+     "fvg_quality": 0.962,
+     "ob_fvg_retracement": 0.841,
+     "premium_discount_location": 0.577,
+     "entry_location": 0.829,
+     "risk_reward_quality": 0.728,
+     "session_quality": 0.718
+    },
+    "confluences": [
+     "4H bias agrees with trade direction",
+     "SSL swept below/above the Asian range into 1.33817",
+     "Displacement closed through the minor structure level (CHoCH)",
+     "Fair value gap left by the displacement",
+     "Entry in discount of the S-H range (45% retrace level)"
+    ],
+    "conflicts": [],
+    "invalidation": "A body close beyond 1.33817 (the sweep extreme) invalidates the sequence.",
+    "summary": "A+ SMC sequence on GBPUSD (BUY). Aligned: 5 factors, conflicts: 0. Entry via order-block retest at 45% of the displacement leg.",
+    "risk_notes": [
+     "Invalidation: close beyond the sweep extreme 1.33817",
+     "Planned R:R about 1:3.24"
+    ],
+    "chart_readability": "clear"
+   },
+   "notes": "[DEMO] SMC setup #44 - GBPUSD BUY. Synthetic chart + simulated trade.",
+   "emotions": "neutral",
+   "mistakes": "",
+   "rating": 5
+  },
+  {
+   "n": 45,
+   "symbol": "AUDUSD",
+   "direction": "SELL",
+   "strategy": "SMC Liquidity Sweep + OB/FVG",
+   "entry_price": 0.67651,
+   "exit_price": 0.67471,
+   "sl": 0.67785,
+   "tp": 0.67185,
+   "size": 0.75,
+   "pnl": 135.0,
+   "pnl_percent": 0.27,
+   "outcome": "win",
+   "planned_rr": 3.46,
+   "entry_time": "2026-10-05T10:15:00",
+   "exit_time": "2026-10-07T10:30:00",
+   "smc_confluence": 0.684,
+   "images": {
+    "4H": "smc45_AUDUSD_SELL_4H.png",
+    "1H": "smc45_AUDUSD_SELL_1H.png",
+    "30M": "smc45_AUDUSD_SELL_30M.png",
+    "15M": "smc45_AUDUSD_SELL_15M.png"
+   },
+   "result_image": "smc45_AUDUSD_SELL_RESULT_15M.png",
+   "analysis": {
+    "market_bias": "range",
+    "setup_direction": "SELL",
+    "setup_type": "A+ SMC sequence: BSL sweep -> CHoCH -> FVG consequent-encroachment entry",
+    "timeframes": {
+     "4H": {
+      "bias": "range",
+      "structure": "Range 4H structure; trade is not with the higher-timeframe flow",
+      "liquidity": "External SSL resting beyond the recent range; BSL side already visited",
+      "key_levels": "Setup zone near 0.67651",
+      "confidence": 0.7
+     },
+     "1H": {
+      "bias": "range",
+      "structure": "Dealing range between 0.67761 and 0.67511; entry at 44% of the leg",
+      "liquidity": "Asian high 0.67411 swept",
+      "key_levels": "Asian range 0.67706 - 0.67411",
+      "confidence": 0.67
+     },
+     "30M": {
+      "bias": "bearish",
+      "structure": "CHoCH confirmed at 0.67582",
+      "liquidity": "BSL taken at 0.67761",
+      "key_levels": "OB 0.67680-0.67761; FVG 0.67620-0.67681",
+      "confidence": 0.83
+     },
+     "15M": {
+      "bias": "bearish",
+      "structure": "Retracement completed into FVG consequent-encroachment entry",
+      "liquidity": "Next target: external SSL / R:R 3.46",
+      "key_levels": "Entry 0.67651, SL 0.67785, TP 0.67185",
+      "confidence": 0.74
+     }
+    },
+    "features": {
+     "trend_alignment": 0.484,
+     "structure_quality": 0.415,
+     "liquidity_sweep": 0.7,
+     "asian_range_sweep": 0.742,
+     "london_liquidity_sweep": 0.752,
+     "bos_choch_confirmation": 0.944,
+     "order_block_quality": 0.795,
+     "fvg_quality": 0.774,
+     "ob_fvg_retracement": 0.761,
+     "premium_discount_location": 0.589,
+     "entry_location": 0.697,
+     "risk_reward_quality": 0.747,
+     "session_quality": 0.843
+    },
+    "confluences": [
+     "BSL swept below/above the Asian range into 0.67761",
+     "Displacement closed through the minor structure level (CHoCH)",
+     "Fair value gap left by the displacement",
+     "Entry in premium of the S-H range (44% retrace level)"
+    ],
+    "conflicts": [
+     "4H bias is range - trade is against higher-timeframe flow"
+    ],
+    "invalidation": "A body close beyond 0.67761 (the sweep extreme) invalidates the sequence.",
+    "summary": "A+ SMC sequence on AUDUSD (SELL). Aligned: 4 factors, conflicts: 1. Entry via FVG consequent-encroachment entry at 44% of the displacement leg.",
+    "risk_notes": [
+     "Invalidation: close beyond the sweep extreme 0.67761",
+     "Planned R:R about 1:3.46"
+    ],
+    "chart_readability": "clear"
+   },
+   "notes": "[DEMO] SMC setup #45 - AUDUSD SELL. Synthetic chart + simulated trade.",
+   "emotions": "disciplined",
+   "mistakes": "",
+   "rating": 4
+  },
+  {
+   "n": 46,
+   "symbol": "USDJPY",
+   "direction": "SELL",
+   "strategy": "SMC Liquidity Sweep + OB/FVG",
+   "entry_price": 153.339,
+   "exit_price": 153.523,
+   "sl": 153.523,
+   "tp": 152.928,
+   "size": 0.83,
+   "pnl": -99.48,
+   "pnl_percent": -0.0,
+   "outcome": "loss",
+   "planned_rr": 2.23,
+   "entry_time": "2026-10-13T10:15:00",
+   "exit_time": "2026-10-13T20:30:00",
+   "smc_confluence": 0.665,
+   "images": {
+    "4H": "smc46_USDJPY_SELL_4H.png",
+    "1H": "smc46_USDJPY_SELL_1H.png",
+    "30M": "smc46_USDJPY_SELL_30M.png",
+    "15M": "smc46_USDJPY_SELL_15M.png"
+   },
+   "result_image": "smc46_USDJPY_SELL_RESULT_15M.png",
+   "analysis": {
+    "market_bias": "range",
+    "setup_direction": "SELL",
+    "setup_type": "Partial SMC sequence: BSL sweep -> CHoCH -> FVG consequent-encroachment entry",
+    "timeframes": {
+     "4H": {
+      "bias": "range",
+      "structure": "Range 4H structure; trade is not with the higher-timeframe flow",
+      "liquidity": "External SSL resting beyond the recent range; BSL side already visited",
+      "key_levels": "Setup zone near 153.339",
+      "confidence": 0.66
+     },
+     "1H": {
+      "bias": "range",
+      "structure": "Dealing range between 153.484 and 153.098; entry at 38% of the leg",
+      "liquidity": "Asian high 153.056 swept",
+      "key_levels": "Asian range 153.366 - 153.056",
+      "confidence": 0.7
+     },
+     "30M": {
+      "bias": "bearish",
+      "structure": "CHoCH confirmed at 153.183",
+      "liquidity": "BSL taken at 153.484",
+      "key_levels": "OB 153.377-153.484; FVG 153.309-153.368",
+      "confidence": 0.78
+     },
+     "15M": {
+      "bias": "bearish",
+      "structure": "Retracement completed into FVG consequent-encroachment entry",
+      "liquidity": "Next target: external SSL / R:R 2.23",
+      "key_levels": "Entry 153.339, SL 153.523, TP 152.928",
+      "confidence": 0.76
+     }
+    },
+    "features": {
+     "trend_alignment": 0.369,
+     "structure_quality": 0.497,
+     "liquidity_sweep": 0.899,
+     "asian_range_sweep": 0.873,
+     "london_liquidity_sweep": 0.889,
+     "bos_choch_confirmation": 0.812,
+     "order_block_quality": 0.562,
+     "fvg_quality": 0.637,
+     "ob_fvg_retracement": 0.796,
+     "premium_discount_location": 0.66,
+     "entry_location": 0.75,
+     "risk_reward_quality": 0.354,
+     "session_quality": 0.82
+    },
+    "confluences": [
+     "BSL swept below/above the Asian range into 153.484",
+     "Displacement closed through the minor structure level (CHoCH)",
+     "Fair value gap left by the displacement",
+     "Entry in premium of the S-H range (38% retrace level)"
+    ],
+    "conflicts": [
+     "4H bias is range - trade is against higher-timeframe flow"
+    ],
+    "invalidation": "A body close beyond 153.484 (the sweep extreme) invalidates the sequence.",
+    "summary": "Partial SMC sequence on USDJPY (SELL). Aligned: 4 factors, conflicts: 1. Entry via FVG consequent-encroachment entry at 38% of the displacement leg.",
+    "risk_notes": [
+     "Invalidation: close beyond the sweep extreme 153.484",
+     "Planned R:R about 1:2.23"
+    ],
+    "chart_readability": "clear"
+   },
+   "notes": "[DEMO] SMC setup #46 - USDJPY SELL. Synthetic chart + simulated trade.",
+   "emotions": "neutral",
+   "mistakes": "Traded against the 4h bias.",
+   "rating": 3
+  },
+  {
+   "n": 47,
+   "symbol": "GBPJPY",
+   "direction": "SELL",
+   "strategy": "SMC Liquidity Sweep + OB/FVG",
+   "entry_price": 192.499,
+   "exit_price": 192.76,
+   "sl": 192.76,
+   "tp": 192.097,
+   "size": 0.56,
+   "pnl": -99.33,
+   "pnl_percent": -0.0,
+   "outcome": "loss",
+   "planned_rr": 1.54,
+   "entry_time": "2026-10-22T10:30:00",
+   "exit_time": "2026-10-22T18:45:00",
+   "smc_confluence": 0.413,
+   "images": {
+    "4H": "smc47_GBPJPY_SELL_4H.png",
+    "1H": "smc47_GBPJPY_SELL_1H.png",
+    "30M": "smc47_GBPJPY_SELL_30M.png",
+    "15M": "smc47_GBPJPY_SELL_15M.png"
+   },
+   "result_image": "smc47_GBPJPY_SELL_RESULT_15M.png",
+   "analysis": {
+    "market_bias": "range",
+    "setup_direction": "SELL",
+    "setup_type": "Weak / forced SMC setup: BSL sweep -> CHoCH -> shallow pullback entry",
+    "timeframes": {
+     "4H": {
+      "bias": "range",
+      "structure": "Range 4H structure; trade is not with the higher-timeframe flow",
+      "liquidity": "External SSL resting beyond the recent range; BSL side already visited",
+      "key_levels": "Setup zone near 192.499",
+      "confidence": 0.72
+     },
+     "1H": {
+      "bias": "range",
+      "structure": "Dealing range between 192.701 and 192.384; entry at 64% of the leg",
+      "liquidity": "Asian high 191.988 swept",
+      "key_levels": "Asian range 192.547 - 191.988",
+      "confidence": 0.7
+     },
+     "30M": {
+      "bias": "bearish",
+      "structure": "CHoCH not confirmed at 192.291",
+      "liquidity": "BSL taken at 192.701",
+      "key_levels": "OB 192.612-192.701; FVG 192.483-192.590",
+      "confidence": 0.56
+     },
+     "15M": {
+      "bias": "bearish",
+      "structure": "Retracement completed into shallow pullback entry",
+      "liquidity": "Next target: external SSL / R:R 1.54",
+      "key_levels": "Entry 192.499, SL 192.760, TP 192.097",
+      "confidence": 0.57
+     }
+    },
+    "features": {
+     "trend_alignment": 0.573,
+     "structure_quality": 0.49,
+     "liquidity_sweep": 0.856,
+     "asian_range_sweep": 0.791,
+     "london_liquidity_sweep": 0.814,
+     "bos_choch_confirmation": 0.166,
+     "order_block_quality": 0.276,
+     "fvg_quality": 0.728,
+     "ob_fvg_retracement": 0.138,
+     "premium_discount_location": 0.306,
+     "entry_location": 0.186,
+     "risk_reward_quality": 0.258,
+     "session_quality": 0.81
+    },
+    "confluences": [
+     "BSL swept below/above the Asian range into 192.701",
+     "Fair value gap left by the displacement"
+    ],
+    "conflicts": [
+     "4H bias is range - trade is against higher-timeframe flow",
+     "Structure break was wick-only; CHoCH not confirmed by a body close",
+     "Entry is a late/shallow pullback at 64% of the leg - poor location"
+    ],
+    "invalidation": "A body close beyond 192.701 (the sweep extreme) invalidates the sequence.",
+    "summary": "Weak / forced SMC setup on GBPJPY (SELL). Aligned: 2 factors, conflicts: 3. Entry via shallow pullback entry at 64% of the displacement leg.",
+    "risk_notes": [
+     "Invalidation: close beyond the sweep extreme 192.701",
+     "Planned R:R about 1:1.54"
+    ],
+    "chart_readability": "clear"
+   },
+   "notes": "[DEMO] SMC setup #47 - GBPJPY SELL. Synthetic chart + simulated trade.",
+   "emotions": "greedy",
+   "mistakes": "Traded against the 4h bias; entered without a confirmed choch; chased a shallow pullback.",
+   "rating": 2
+  },
+  {
+   "n": 48,
+   "symbol": "XAUUSD",
+   "direction": "BUY",
+   "strategy": "SMC Liquidity Sweep + OB/FVG",
+   "entry_price": 2711.42,
+   "exit_price": 2712.34,
+   "sl": 2707.07,
+   "tp": 2721.69,
+   "size": 0.23,
+   "pnl": 21.16,
+   "pnl_percent": 0.03,
+   "outcome": "win",
+   "planned_rr": 2.36,
+   "entry_time": "2026-10-29T11:30:00",
+   "exit_time": "2026-10-31T11:45:00",
+   "smc_confluence": 0.724,
+   "images": {
+    "4H": "smc48_XAUUSD_BUY_4H.png",
+    "1H": "smc48_XAUUSD_BUY_1H.png",
+    "30M": "smc48_XAUUSD_BUY_30M.png",
+    "15M": "smc48_XAUUSD_BUY_15M.png"
+   },
+   "result_image": "smc48_XAUUSD_BUY_RESULT_15M.png",
+   "analysis": {
+    "market_bias": "bullish",
+    "setup_direction": "BUY",
+    "setup_type": "A+ SMC sequence: SSL sweep -> CHoCH -> FVG consequent-encroachment entry",
+    "timeframes": {
+     "4H": {
+      "bias": "bullish",
+      "structure": "Bullish 4H structure; trade is with the higher-timeframe flow",
+      "liquidity": "External BSL resting beyond the recent range; SSL side already visited",
+      "key_levels": "Setup zone near 2711.42",
+      "confidence": 0.76
+     },
+     "1H": {
+      "bias": "bullish",
+      "structure": "Dealing range between 2707.89 and 2715.27; entry at 48% of the leg",
+      "liquidity": "Asian low 2710.20 swept",
+      "key_levels": "Asian range 2710.20 - 2717.98",
+      "confidence": 0.74
+     },
+     "30M": {
+      "bias": "bullish",
+      "structure": "CHoCH confirmed at 2713.75",
+      "liquidity": "SSL taken at 2707.89",
+      "key_levels": "OB 2707.89-2710.88; FVG 2710.48-2712.36",
+      "confidence": 0.78
+     },
+     "15M": {
+      "bias": "bullish",
+      "structure": "Retracement completed into FVG consequent-encroachment entry",
+      "liquidity": "Next target: external BSL / R:R 2.36",
+      "key_levels": "Entry 2711.42, SL 2707.07, TP 2721.69",
+      "confidence": 0.77
+     }
+    },
+    "features": {
+     "trend_alignment": 0.694,
+     "structure_quality": 0.627,
+     "liquidity_sweep": 0.78,
+     "asian_range_sweep": 0.955,
+     "london_liquidity_sweep": 0.837,
+     "bos_choch_confirmation": 0.794,
+     "order_block_quality": 0.688,
+     "fvg_quality": 0.811,
+     "ob_fvg_retracement": 0.776,
+     "premium_discount_location": 0.565,
+     "entry_location": 0.779,
+     "risk_reward_quality": 0.43,
+     "session_quality": 0.812
+    },
+    "confluences": [
+     "4H bias agrees with trade direction",
+     "SSL swept below/above the Asian range into 2707.89",
+     "Displacement closed through the minor structure level (CHoCH)",
+     "Fair value gap left by the displacement",
+     "Entry in discount of the S-H range (48% retrace level)"
+    ],
+    "conflicts": [],
+    "invalidation": "A body close beyond 2707.89 (the sweep extreme) invalidates the sequence.",
+    "summary": "A+ SMC sequence on XAUUSD (BUY). Aligned: 5 factors, conflicts: 0. Entry via FVG consequent-encroachment entry at 48% of the displacement leg.",
+    "risk_notes": [
+     "Invalidation: close beyond the sweep extreme 2707.89",
+     "Planned R:R about 1:2.36"
+    ],
+    "chart_readability": "clear"
+   },
+   "notes": "[DEMO] SMC setup #48 - XAUUSD BUY. Synthetic chart + simulated trade.",
+   "emotions": "disciplined",
+   "mistakes": "",
+   "rating": 4
+  },
+  {
+   "n": 49,
+   "symbol": "EURUSD",
+   "direction": "BUY",
+   "strategy": "SMC Liquidity Sweep + OB/FVG",
+   "entry_price": 1.11641,
+   "exit_price": 1.11952,
+   "sl": 1.1148,
+   "tp": 1.11952,
+   "size": 0.62,
+   "pnl": 192.82,
+   "pnl_percent": 0.28,
+   "outcome": "win",
+   "planned_rr": 1.93,
+   "entry_time": "2026-11-10T10:45:00",
+   "exit_time": "2026-11-11T04:45:00",
+   "smc_confluence": 0.857,
+   "images": {
+    "4H": "smc49_EURUSD_BUY_4H.png",
+    "1H": "smc49_EURUSD_BUY_1H.png",
+    "30M": "smc49_EURUSD_BUY_30M.png",
+    "15M": "smc49_EURUSD_BUY_15M.png"
+   },
+   "result_image": "smc49_EURUSD_BUY_RESULT_15M.png",
+   "analysis": {
+    "market_bias": "bullish",
+    "setup_direction": "BUY",
+    "setup_type": "A+ SMC sequence: SSL sweep -> CHoCH -> order-block retest",
+    "timeframes": {
+     "4H": {
+      "bias": "bullish",
+      "structure": "Bullish 4H structure; trade is with the higher-timeframe flow",
+      "liquidity": "External BSL resting beyond the recent range; SSL side already visited",
+      "key_levels": "Setup zone near 1.11641",
+      "confidence": 0.8
+     },
+     "1H": {
+      "bias": "bullish",
+      "structure": "Dealing range between 1.11510 and 1.11802; entry at 45% of the leg",
+      "liquidity": "Asian low 1.11589 swept",
+      "key_levels": "Asian range 1.11589 - 1.11869",
+      "confidence": 0.77
+     },
+     "30M": {
+      "bias": "bullish",
+      "structure": "CHoCH confirmed at 1.11711",
+      "liquidity": "SSL taken at 1.11510",
+      "key_levels": "OB 1.11510-1.11644; FVG 1.11617-1.11716",
+      "confidence": 0.85
+     },
+     "15M": {
+      "bias": "bullish",
+      "structure": "Retracement completed into order-block retest",
+      "liquidity": "Next target: external BSL / R:R 1.93",
+      "key_levels": "Entry 1.11641, SL 1.11480, TP 1.11952",
+      "confidence": 0.8
+     }
+    },
+    "features": {
+     "trend_alignment": 0.83,
+     "structure_quality": 0.747,
+     "liquidity_sweep": 0.822,
+     "asian_range_sweep": 0.808,
+     "london_liquidity_sweep": 0.735,
+     "bos_choch_confirmation": 1.0,
+     "order_block_quality": 0.878,
+     "fvg_quality": 0.992,
+     "ob_fvg_retracement": 1.0,
+     "premium_discount_location": 0.592,
+     "entry_location": 0.849,
+     "risk_reward_quality": 0.34,
+     "session_quality": 0.818
+    },
+    "confluences": [
+     "4H bias agrees with trade direction",
+     "SSL swept below/above the Asian range into 1.11510",
+     "Displacement closed through the minor structure level (CHoCH)",
+     "Fair value gap left by the displacement",
+     "Entry in discount of the S-H range (45% retrace level)"
+    ],
+    "conflicts": [],
+    "invalidation": "A body close beyond 1.11510 (the sweep extreme) invalidates the sequence.",
+    "summary": "A+ SMC sequence on EURUSD (BUY). Aligned: 5 factors, conflicts: 0. Entry via order-block retest at 45% of the displacement leg.",
+    "risk_notes": [
+     "Invalidation: close beyond the sweep extreme 1.11510",
+     "Planned R:R about 1:1.93"
+    ],
+    "chart_readability": "clear"
+   },
+   "notes": "[DEMO] SMC setup #49 - EURUSD BUY. Synthetic chart + simulated trade.",
+   "emotions": "confident",
+   "mistakes": "",
+   "rating": 5
+  },
+  {
+   "n": 50,
+   "symbol": "AUDUSD",
+   "direction": "BUY",
+   "strategy": "SMC Liquidity Sweep + OB/FVG",
+   "entry_price": 0.65586,
+   "exit_price": 0.65389,
+   "sl": 0.65389,
+   "tp": 0.66032,
+   "size": 0.51,
+   "pnl": -100.47,
+   "pnl_percent": -0.3,
+   "outcome": "loss",
+   "planned_rr": 2.25,
+   "entry_time": "2026-11-18T11:30:00",
+   "exit_time": "2026-11-19T17:00:00",
+   "smc_confluence": 0.409,
+   "images": {
+    "4H": "smc50_AUDUSD_BUY_4H.png",
+    "1H": "smc50_AUDUSD_BUY_1H.png",
+    "30M": "smc50_AUDUSD_BUY_30M.png",
+    "15M": "smc50_AUDUSD_BUY_15M.png"
+   },
+   "result_image": "smc50_AUDUSD_BUY_RESULT_15M.png",
+   "analysis": {
+    "market_bias": "range",
+    "setup_direction": "BUY",
+    "setup_type": "Weak / forced SMC setup: SSL sweep -> CHoCH -> shallow pullback entry",
+    "timeframes": {
+     "4H": {
+      "bias": "range",
+      "structure": "Range 4H structure; trade is not with the higher-timeframe flow",
+      "liquidity": "External BSL resting beyond the recent range; SSL side already visited",
+      "key_levels": "Setup zone near 0.65586",
+      "confidence": 0.68
+     },
+     "1H": {
+      "bias": "range",
+      "structure": "Dealing range between 0.65414 and 0.65669; entry at 68% of the leg",
+      "liquidity": "Asian low 0.65468 swept",
+      "key_levels": "Asian range 0.65468 - 0.65769",
+      "confidence": 0.7
+     },
+     "30M": {
+      "bias": "bullish",
+      "structure": "CHoCH not confirmed at 0.65649",
+      "liquidity": "SSL taken at 0.65414",
+      "key_levels": "OB 0.65414-0.65471; FVG 0.65490-0.65524",
+      "confidence": 0.61
+     },
+     "15M": {
+      "bias": "bullish",
+      "structure": "Retracement completed into shallow pullback entry",
+      "liquidity": "Next target: external BSL / R:R 2.25",
+      "key_levels": "Entry 0.65586, SL 0.65389, TP 0.66032",
+      "confidence": 0.58
+     }
+    },
+    "features": {
+     "trend_alignment": 0.417,
+     "structure_quality": 0.496,
+     "liquidity_sweep": 0.806,
+     "asian_range_sweep": 0.806,
+     "london_liquidity_sweep": 0.736,
+     "bos_choch_confirmation": 0.309,
+     "order_block_quality": 0.423,
+     "fvg_quality": 0.64,
+     "ob_fvg_retracement": 0.102,
+     "premium_discount_location": 0.275,
+     "entry_location": 0.215,
+     "risk_reward_quality": 0.432,
+     "session_quality": 0.834
+    },
+    "confluences": [
+     "SSL swept below/above the Asian range into 0.65414",
+     "Fair value gap left by the displacement"
+    ],
+    "conflicts": [
+     "4H bias is range - trade is against higher-timeframe flow",
+     "Structure break was wick-only; CHoCH not confirmed by a body close",
+     "Entry is a late/shallow pullback at 68% of the leg - poor location"
+    ],
+    "invalidation": "A body close beyond 0.65414 (the sweep extreme) invalidates the sequence.",
+    "summary": "Weak / forced SMC setup on AUDUSD (BUY). Aligned: 2 factors, conflicts: 3. Entry via shallow pullback entry at 68% of the displacement leg.",
+    "risk_notes": [
+     "Invalidation: close beyond the sweep extreme 0.65414",
+     "Planned R:R about 1:2.25"
+    ],
+    "chart_readability": "clear"
+   },
+   "notes": "[DEMO] SMC setup #50 - AUDUSD BUY. Synthetic chart + simulated trade.",
+   "emotions": "neutral",
+   "mistakes": "Traded against the 4h bias; entered without a confirmed choch; chased a shallow pullback.",
+   "rating": 2
   }
  ]
 }
