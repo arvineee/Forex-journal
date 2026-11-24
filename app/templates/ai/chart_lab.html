@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}Multi-Timeframe Chart Lab{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <div>
+      <h2 class="mb-1">Multi-Timeframe Chart Lab</h2>
+      <p class="text-muted mb-0">Upload one instrument's 4H, 1H, 30M and 15M charts for top-down analysis.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{{ url_for('ai.dashboard') }}">AI Dashboard</a>
+  </div>
+
+  {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+  <div class="alert alert-warning small" role="alert">
+    <strong>For trustworthy learning:</strong> use screenshots captured at or before the planned entry, not charts showing what happened after the trade. Link only the matching journal trade. Post-outcome screenshots can leak future information into the learning dataset and make historical estimates look better than they really are.
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-body p-4">
+      <h5 class="mb-3">Analyse a chart setup</h5>
+      <form method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="row g-3 mb-3">
+          <div class="col-md-4">
+            <label class="form-label">Instrument</label>
+            <input class="form-control" name="symbol" placeholder="e.g. EURUSD or XAUUSD" required maxlength="20">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Intended direction</label>
+            <select class="form-select" name="direction">
+              <option value="">Not decided</option><option value="BUY">BUY</option><option value="SELL">SELL</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Link to an existing closed trade (optional)</label>
+            <select class="form-select" name="trade_id">
+              <option value="">No trade yet</option>
+              {% for trade in closed_trades %}
+                <option value="{{ trade.id }}">{{ trade.symbol }} · {{ trade.direction }} · {{ trade.entry_time|datetimeformat }} · {{ 'Win' if trade.pnl and trade.pnl > 0 else 'Loss' if trade.pnl and trade.pnl < 0 else 'Breakeven' }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="row g-3">
+          {% for tf, description in [('4H','Higher-timeframe bias and major structure'),('1H','Market structure and dealing range'),('30M','Setup development and liquidity'),('15M','Entry trigger and execution confirmation')] %}
+          <div class="col-md-6">
+            <div class="border rounded-3 p-3 h-100">
+              <label class="form-label fw-semibold">{{ tf }} chart</label>
+              <div class="small text-muted mb-2">{{ description }}</div>
+              <input class="form-control" type="file" name="{{ tf }}" accept="image/png,image/jpeg,image/webp" required>
+              <div class="form-text">PNG, JPG or WEBP · maximum 8 MB</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        <button class="btn btn-primary mt-4" type="submit">Analyse all four timeframes</button>
+      </form>
+    </div>
+  </div>
+
+  {% if result %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-body p-4">
+      <div class="d-flex flex-wrap justify-content-between gap-2">
+        <div><span class="badge bg-dark">{{ result.market_bias|upper }}</span> <span class="badge bg-secondary">{{ result.setup_direction|upper }}</span>
+          <h4 class="mt-2">{{ result.setup_type }}</h4></div>
+        <div class="text-muted small">Analysis #{{ result.analysis_id }}</div>
+      </div>
+      <p>{{ result.summary }}</p>
+      <h5 class="mt-4">Top-down timeframe breakdown</h5>
+      <div class="row g-3">
+        {% for tf in ['4H','1H','30M','15M'] %}
+        <div class="col-md-6"><div class="border rounded-3 p-3 h-100">
+          <div class="fw-bold">{{ tf }} · {{ result.timeframes[tf].bias }}</div>
+          <p class="small mb-1">{{ result.timeframes[tf].structure }}</p>
+          <p class="small mb-1"><strong>Liquidity:</strong> {{ result.timeframes[tf].liquidity }}</p>
+          <p class="small mb-1"><strong>Key levels:</strong> {{ result.timeframes[tf].key_levels }}</p>
+          <div class="small text-muted">Visual confidence: {{ (result.timeframes[tf].confidence * 100)|round|int }}%</div>
+        </div></div>
+        {% endfor %}
+      </div>
+      <div class="row g-3 mt-1">
+        <div class="col-md-6"><h6>Confluences</h6><ul>{% for item in result.confluences %}<li>{{ item }}</li>{% else %}<li>None confirmed</li>{% endfor %}</ul></div>
+        <div class="col-md-6"><h6>Conflicts / warnings</h6><ul>{% for item in result.conflicts + result.risk_notes %}<li>{{ item }}</li>{% else %}<li>No additional warnings returned</li>{% endfor %}</ul></div>
+      </div>
+      <p><strong>Invalidation:</strong> {{ result.invalidation }}</p>
+      {% if prediction and prediction.probability_available %}
+        <div class="alert alert-info"><strong>Personal historical model estimate: {{ prediction.win_probability }}%</strong>
+          <div class="small">Based on {{ prediction.model_metrics.labelled_samples }} labelled chart examples. Cross-validated balanced accuracy: {{ prediction.model_metrics.balanced_accuracy }}; Brier score: {{ prediction.model_metrics.brier_score }}. {{ prediction.disclaimer }}</div>
+        </div>
+      {% else %}
+        <div class="alert alert-warning"><strong>No personal win probability yet.</strong>
+          {{ prediction.learning_status.message if prediction and prediction.learning_status else 'More completed chart examples are required.' }}
+        </div>
+      {% endif %}
+      <div class="small text-muted">Vision analysis is an interpretation of screenshots, not a verified live market feed. Confirm prices and levels on your platform.</div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="card shadow-sm mb-4"><div class="card-body p-4">
+    <h5>What separates your winning and losing setups?</h5>
+    <p class="small text-muted">Average vision-derived setup scores from chart analyses linked to your completed trades. These are associations, not proof of causation.</p>
+    <div class="table-responsive"><table class="table table-sm align-middle">
+      <thead><tr><th>Chart factor</th><th>Winning trades</th><th>Losing trades</th><th>Difference</th></tr></thead>
+      <tbody>
+      {% for item in outcome_comparison.features %}
+        <tr><td>{{ item.name }}</td><td>{{ item.win_average }}</td><td>{{ item.loss_average }}</td><td>{{ '%+.2f'|format(item.difference) }}</td></tr>
+      {% else %}
+        <tr><td colspan="4" class="text-muted">Link chart analyses to at least one winning and one losing completed trade to see this comparison.</td></tr>
+      {% endfor %}
+      </tbody></table></div>
+  </div></div>
+
+  <div class="card shadow-sm mb-4"><div class="card-body p-4">
+    <h5>Learning progress</h5>
+    <p class="mb-1">Labelled chart examples: {{ learning.labelled_samples|default(0) }}</p>
+    <p class="text-muted small mb-0">{{ learning.message|default('Link chart analyses to completed trades to build your personal chart dataset.') }}</p>
+  </div></div>
+
+  <div class="card shadow-sm"><div class="card-body p-4">
+    <h5>Recent chart analyses</h5>
+    {% for item in recent %}
+      <div class="border-top py-3">
+        <div class="d-flex flex-wrap justify-content-between gap-2">
+          <div><strong>{{ item.symbol }}</strong> · {{ item.direction or 'Direction not set' }} · {{ item.created_at|datetimeformat }}
+            <div class="small text-muted">Outcome: {{ 'Win' if item.outcome_label == 1 else 'Loss' if item.outcome_label == 0 else 'Not labelled yet' }}</div>
+          </div>
+          {% if item.outcome_label is none %}
+          <form class="link-trade-form d-flex gap-2" data-analysis-id="{{ item.id }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <select class="form-select form-select-sm" name="trade_id" required style="max-width:260px">
+              <option value="">Link matching trade…</option>
+              {% for trade in closed_trades if trade.symbol.upper() == item.symbol.upper() %}
+                <option value="{{ trade.id }}">{{ trade.direction }} · {{ trade.entry_time|datetimeformat }} · {{ 'Win' if trade.pnl and trade.pnl > 0 else 'Loss' if trade.pnl and trade.pnl < 0 else 'Breakeven' }}</option>
+              {% endfor %}
+            </select>
+            <button class="btn btn-sm btn-outline-primary">Link</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+    {% else %}<p class="text-muted mb-0">No chart analyses yet.</p>{% endfor %}
+  </div></div>
+</div>
+<script>
+document.querySelectorAll('.link-trade-form').forEach(form => {
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    const id = form.dataset.analysisId;
+    const response = await fetch(`/ai/chart-analysis/${id}/link`, {method:'POST', body:new FormData(form)});
+    const data = await response.json();
+    if (data.success) { alert(data.message); window.location.reload(); }
+    else { alert(data.error || 'Could not link this trade.'); }
+  });
+});
+</script>
+{% endblock %}

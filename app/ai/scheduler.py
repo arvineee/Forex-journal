@@ -17,7 +17,7 @@ def learn_from_all_users():
     """Full AI analysis pass — runs on a schedule, not on every trade save."""
     app = create_app()
     with app.app_context():
-        users = User.query.all()
+        users = User.query.order_by(User.id).yield_per(100)
         logger.info("[AI Scheduler] Starting full analysis for %d users at %s", len(users), datetime.now())
         for user in users:
             try:

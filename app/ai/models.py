@@ -47,3 +47,23 @@ class AILearningLog(db.Model):
     
     def __repr__(self):
         return f'<AILearningLog {self.event_type} at {self.created_at}>'
+
+
+class AIChartAnalysis(db.Model):
+    """A user's four-timeframe chart snapshot and its eventual trade outcome."""
+    __tablename__ = "ai_chart_analyses"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    trade_id = db.Column(db.Integer, db.ForeignKey("trades.id", ondelete="SET NULL"), nullable=True, index=True)
+    symbol = db.Column(db.String(20), nullable=False, index=True)
+    direction = db.Column(db.String(8), nullable=True)
+    analysis_json = db.Column(db.Text, nullable=False)
+    image_files_json = db.Column(db.Text, nullable=False)
+    outcome_label = db.Column(db.Integer, nullable=True)  # 1=win, 0=loss; set from linked closed trade
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+
+    trade = db.relationship("Trade", backref=db.backref("chart_analyses", lazy="dynamic"))
+
+    def __repr__(self):
+        return f"<AIChartAnalysis {self.id} {self.symbol}>"

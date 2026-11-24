@@ -27,14 +27,14 @@ if __name__ == '__main__':
     print("⏹️  Press Ctrl+C to stop the server")
     print("-" * 50)
 
-    if not app.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
+    if os.environ.get("ENABLE_AI_SCHEDULER", "false").lower() == "true":
         setup_scheduler()
-        print("🤖 AI Learning Scheduler Started")
+        print("AI learning scheduler started in this process")
 
     # Run the application
     app.run(
-        debug=True, 
-        host='0.0.0.0', 
-        port=5000,
-        use_reloader=True
+        debug=app.config.get('DEBUG', False),
+        host=os.environ.get('HOST', '0.0.0.0'),
+        port=int(os.environ.get('PORT', 5000)),
+        use_reloader=app.config.get('DEBUG', False)
     )

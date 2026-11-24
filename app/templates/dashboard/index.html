@@ -392,7 +392,7 @@
                             <div class="trade-pnl {{ 'pos' if trade.pnl and trade.pnl > 0 else 'neg' if trade.pnl and trade.pnl < 0 else '' }}" style="color: {{ 'var(--tj-success)' if trade.pnl and trade.pnl > 0 else 'var(--tj-danger)' if trade.pnl and trade.pnl < 0 else 'var(--tj-muted)' }};">
                                 {{ "$%.2f"|format(trade.pnl) if trade.pnl else '-' }}
                             </div>
-                            <small style="color: var(--tj-muted);">{{ trade.entry_time|datetimeformat('%m/%d') }}</small>
+                            <small style="color: var(--tj-muted);">{{ trade.entry_time.strftime('%m/%d') }}</small>
                         </div>
                     </a>
                     {% endfor %}

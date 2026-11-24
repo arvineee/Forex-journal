@@ -121,8 +121,8 @@
                                 </span>
                             </td>
                             <td>
-                                {{ trade.entry_time|datetimeformat('%Y-%m-%d') }}
-                                <br><small class="text-muted">{{ trade.entry_time|datetimeformat('%H:%M') }}</small>
+                                {{ trade.entry_time.strftime('%Y-%m-%d') }}
+                                <br><small class="text-muted">{{ trade.entry_time.strftime('%H:%M') }}</small>
                             </td>
                             <td>
                                 <a href="{{ url_for('trades.view_trade', trade_id=trade.id) }}" 

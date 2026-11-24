@@ -61,27 +61,31 @@ class TradeAnalyzer:
         win_rate = (winning_trades / total_trades * 100) if total_trades > 0 else 0
         
         # Calculate P&L metrics
-        total_pnl = df['pnl'].sum()
-        avg_pnl = df['pnl'].mean()
-        largest_win = df['pnl'].max()
-        largest_loss = df['pnl'].min()
+        total_pnl = float(df['pnl'].sum())
+        avg_pnl = float(df['pnl'].mean())
+        largest_win = float(df['pnl'].max())
+        largest_loss = float(df['pnl'].min())
         
         # Calculate profit factor
         wins = df[df['pnl'] > 0]['pnl'].sum()
         losses = abs(df[df['pnl'] < 0]['pnl'].sum())
-        profit_factor = wins / losses if losses > 0 else float('inf')
+        profit_factor = float(wins / losses) if losses > 0 else float('inf')
         
         # Calculate average winning and losing trades
-        avg_winning_trade = df[df['pnl'] > 0]['pnl'].mean() if winning_trades > 0 else 0
-        avg_losing_trade = df[df['pnl'] < 0]['pnl'].mean() if losing_trades > 0 else 0
+        avg_winning_trade = float(df[df['pnl'] > 0]['pnl'].mean()) if winning_trades > 0 else 0.0
+        avg_losing_trade = float(df[df['pnl'] < 0]['pnl'].mean()) if losing_trades > 0 else 0.0
         
         # Calculate max drawdown
         equity_curve = TradeAnalyzer.generate_equity_data(valid_trades)
         if equity_curve:
             equity_values = [point['equity'] for point in equity_curve]
             running_max = np.maximum.accumulate(equity_values)
-            drawdowns = (equity_values - running_max) / running_max * 100
-            max_drawdown = abs(drawdowns.min()) if len(drawdowns) > 0 else 0
+            drawdowns = [
+                ((peak - value) / peak) * 100
+                for value, peak in zip(equity_values, running_max)
+                if peak > 0
+            ]
+            max_drawdown = max(drawdowns, default=0.0)
         else:
             max_drawdown = 0
         
@@ -97,15 +101,15 @@ class TradeAnalyzer:
             'winning_trades': winning_trades,
             'losing_trades': losing_trades,
             'win_rate': round(win_rate, 2),
-            'total_pnl': round(total_pnl, 2),
-            'avg_pnl': round(avg_pnl, 2),
-            'largest_win': round(largest_win, 2),
-            'largest_loss': round(largest_loss, 2),
-            'profit_factor': round(profit_factor, 2),
-            'avg_winning_trade': round(avg_winning_trade, 2),
-            'avg_losing_trade': round(avg_losing_trade, 2),
-            'max_drawdown': round(max_drawdown, 2),
-            'sharpe_ratio': round(sharpe_ratio, 2)
+            'total_pnl': float(round(total_pnl, 2)),
+            'avg_pnl': float(round(avg_pnl, 2)),
+            'largest_win': float(round(largest_win, 2)),
+            'largest_loss': float(round(largest_loss, 2)),
+            'profit_factor': float(round(profit_factor, 2)) if np.isfinite(profit_factor) else float('inf'),
+            'avg_winning_trade': float(round(avg_winning_trade, 2)),
+            'avg_losing_trade': float(round(avg_losing_trade, 2)),
+            'max_drawdown': float(round(float(max_drawdown), 2)),
+            'sharpe_ratio': float(round(float(sharpe_ratio), 2))
         }
         
         return metrics
@@ -204,35 +208,33 @@ class TradeAnalyzer:
 
     @staticmethod
     def analyze_by_timeframe(trades):
-        """Analyze performance by different time periods"""
-        if not trades:
-            return {}
-
-        time_data = {
-        'by_hour': {},
-        'by_day': {},
-        'by_month': {}
-        }
-
-        for trade in trades:
-            if trade.entry_time:
-                # By hour
-                hour = trade.entry_time.hour
-                if hour not in time_data['by_hour']:
-                    time_data['by_hour'][hour] = {'trades': 0, 'total_pnl': 0, 'winning': 0}
-                    time_data['by_hour'][hour]['trades'] += 1
-                    time_data['by_hour'][hour]['total_pnl'] += trade.pnl or 0
-                    if trade.pnl and trade.pnl > 0:
-                        time_data['by_hour'][hour]['winning'] += 1
-
-                # By day of week
-                day = trade.entry_time.strftime('%A')
-                if day not in time_data['by_day']:
-                    time_data['by_day'][day] = {'trades': 0, 'total_pnl': 0, 'winning': 0}
-                    time_data['by_day'][day]['trades'] += 1
-                    time_data['by_day'][day]['total_pnl'] += trade.pnl or 0
-                    if trade.pnl and trade.pnl > 0:
-                        time_data['by_day'][day]['winning'] += 1
+        """Aggregate completed trade performance by entry hour, weekday and month."""
+        time_data = {'by_hour': {}, 'by_day': {}, 'by_month': {}}
+        for trade in trades or []:
+            if not trade.entry_time:
+                continue
+            pnl = float(trade.pnl or 0)
+            keys = (
+                ('by_hour', trade.entry_time.hour),
+                ('by_day', trade.entry_time.strftime('%A')),
+                ('by_month', trade.entry_time.strftime('%Y-%m')),
+            )
+            for bucket, key in keys:
+                stats = time_data[bucket].setdefault(
+                    key, {'trades': 0, 'total_pnl': 0.0, 'winning': 0}
+                )
+                stats['trades'] += 1
+                stats['total_pnl'] += pnl
+                if pnl > 0:
+                    stats['winning'] += 1
+        for bucket in time_data.values():
+            for stats in bucket.values():
+                stats['win_rate'] = round(
+                    stats['winning'] / stats['trades'] * 100, 2
+                ) if stats['trades'] else 0.0
+                stats['avg_pnl'] = round(
+                    stats['total_pnl'] / stats['trades'], 2
+                ) if stats['trades'] else 0.0
         return time_data
 
     @staticmethod

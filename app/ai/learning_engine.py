@@ -13,6 +13,7 @@ import joblib
 import os
 import pandas as pd
 from typing import Dict, List, Any, Optional
+from flask import current_app, has_app_context
 from app import db
 from app.models import Trade, AccountBalance
 from app.ai.models import AIInsight, TradePattern, AILearningLog
@@ -42,7 +43,9 @@ class ForexAI:
         self.insights: Dict[str, AIInsight] = {}
         self.patterns: Dict[str, TradePattern] = {}
         self.prediction_model: Optional[RandomForestClassifier] = None
-        os.makedirs(self.MODEL_DIR, exist_ok=True)
+        configured_dir = current_app.config.get("AI_MODEL_DIR") if has_app_context() else None
+        self.model_dir = configured_dir or os.environ.get("AI_MODEL_DIR", "/tmp/forex_ai_models")
+        os.makedirs(self.model_dir, exist_ok=True)
 
     # ------------------------------------------------------------------ #
     #  Data loading                                                        #
@@ -146,7 +149,7 @@ class ForexAI:
                 data = json.loads(row.insight_value)
                 data["id"] = row.id
                 data["confidence"] = row.confidence_score
-                data["last_updated"] = row.last_updated.isoformat()
+                data["last_updated"] = row.last_updated.isoformat() if row.last_updated else None
                 result.append(data)
             except Exception as exc:
                 logger.warning("Failed to parse insight %s: %s", row.id, exc)
@@ -520,7 +523,7 @@ class ForexAI:
         if win_durations and loss_durations:
             avg_win_dur = np.mean(win_durations)
             avg_loss_dur = np.mean(loss_durations)
-            if avg_loss_dur > avg_win_dur * 1.5:
+            if avg_win_dur > 0 and avg_loss_dur > avg_win_dur * 1.5:
                 ratio = avg_loss_dur / avg_win_dur
                 insights["loss_aversion_detected"] = {
                     "type": "psychological_bias",
@@ -855,78 +858,106 @@ class ForexAI:
     # ------------------------------------------------------------------ #
 
     def _predict_trade_success(self) -> dict:
+        """Train a conservative per-user model from closed trades only.
+
+        Predictions are educational pattern estimates, not trading signals.
+        A model is withheld when there is insufficient class diversity.
+        """
         insights = {}
-        if len(self.trades) < 30:
+        closed = [t for t in self.trades if t.pnl is not None and t.entry_time is not None]
+        if len(closed) < 30:
             return insights
 
-        model_path = os.path.join(self.MODEL_DIR, f"user_{self.user_id}_rf.pkl")
-        meta_path = os.path.join(self.MODEL_DIR, f"user_{self.user_id}_meta.json")
-
-        # Check if retraining is needed
-        current_count = len(self.trades)
+        model_path = os.path.join(self.model_dir, f"user_{self.user_id}_rf.pkl")
+        meta_path = os.path.join(self.model_dir, f"user_{self.user_id}_meta.json")
+        trained_count = len(closed)
         retrain = True
+        meta = {}
         if os.path.exists(meta_path):
             try:
-                with open(meta_path) as f:
+                with open(meta_path, encoding="utf-8") as f:
                     meta = json.load(f)
-                if current_count - meta.get("trained_on", 0) < 10:
-                    retrain = False
-            except Exception as exc:
-                logger.warning("Could not read model meta: %s", exc)
+                retrain = trained_count - int(meta.get("trained_on", 0)) >= 10
+            except (OSError, ValueError, TypeError) as exc:
+                logger.warning("Could not read model metadata: %s", exc)
 
         try:
-            from sklearn.model_selection import train_test_split
+            if retrain or not os.path.exists(model_path):
+                from sklearn.model_selection import train_test_split
+                from sklearn.metrics import balanced_accuracy_score
 
-            if retrain:
                 features, labels = [], []
-                for i, t in enumerate(self.trades):
-                    if t.pnl is None:
+                for index, trade in enumerate(self.trades):
+                    if trade.pnl is None or trade.entry_time is None:
                         continue
-                    fv = self._extract_trade_features(t, i)
-                    if fv:
-                        features.append(fv)
-                        labels.append(1 if t.pnl > 0 else 0)
+                    vector = self._extract_trade_features(trade, index)
+                    if vector is not None:
+                        features.append(vector)
+                        labels.append(1 if trade.pnl > 0 else 0)
 
-                if len(features) < 30:
+                counts = np.bincount(np.asarray(labels, dtype=int), minlength=2)
+                if len(features) < 30 or np.min(counts) < 2:
+                    logger.info("Skipping personal ML model: insufficient class diversity (%s)", counts.tolist())
                     return insights
 
-                X, y = np.array(features), np.array(labels)
-                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-                model = RandomForestClassifier(n_estimators=100, max_depth=6, random_state=42)
+                X, y = np.asarray(features, dtype=float), np.asarray(labels, dtype=int)
+                X_train, X_test, y_train, y_test = train_test_split(
+                    X, y, test_size=0.2, random_state=42, stratify=y
+                )
+                model = RandomForestClassifier(
+                    n_estimators=200, max_depth=6, min_samples_leaf=2,
+                    class_weight="balanced", random_state=42, n_jobs=-1
+                )
                 model.fit(X_train, y_train)
-                accuracy = model.score(X_test, y_test)
-
+                predictions = model.predict(X_test)
+                accuracy = float(balanced_accuracy_score(y_test, predictions))
+                baseline = float(max(np.mean(y_test), 1 - np.mean(y_test)))
                 joblib.dump(model, model_path)
-                with open(meta_path, "w") as f:
-                    json.dump({"trained_on": current_count, "accuracy": accuracy}, f)
-
+                meta = {
+                    "trained_on": trained_count,
+                    "accuracy": accuracy,
+                    "baseline_accuracy": baseline,
+                    "test_size": int(len(y_test)),
+                    "model_version": 2,
+                    "trained_at": datetime.utcnow().isoformat(),
+                }
+                with open(meta_path, "w", encoding="utf-8") as f:
+                    json.dump(meta, f)
                 self.prediction_model = model
             else:
-                if os.path.exists(model_path):
-                    self.prediction_model = joblib.load(model_path)
-                with open(meta_path) as f:
-                    meta = json.load(f)
-                accuracy = meta.get("accuracy", 0)
+                self.prediction_model = joblib.load(model_path)
+                if not meta:
+                    with open(meta_path, encoding="utf-8") as f:
+                        meta = json.load(f)
+                accuracy = float(meta.get("accuracy", 0.0))
+                baseline = float(meta.get("baseline_accuracy", 0.0))
 
-            if self.prediction_model:
+            if self.prediction_model is not None:
                 feature_names = self._get_feature_names()
                 importances = self.prediction_model.feature_importances_
-                top = sorted(zip(feature_names, importances), key=lambda x: x[1], reverse=True)[:3]
+                top = sorted(zip(feature_names, importances), key=lambda item: item[1], reverse=True)[:3]
                 insights["predictive_model"] = {
                     "type": "prediction",
                     "key": "predictive_model",
-                    "value": f"ML prediction model: {accuracy*100:.1f}% accuracy on held-out trades",
-                    "confidence": min(accuracy, 0.9),
+                    "value": f"Personal pattern model: {accuracy * 100:.1f}% balanced accuracy on held-out trades",
+                    "confidence": min(max(accuracy, 0.0), 0.9),
                     "metadata": {
                         "accuracy": accuracy,
-                        "sample_size": current_count,
-                        "top_features": [(n, float(v)) for n, v in top],
+                        "baseline_accuracy": baseline,
+                        "sample_size": trained_count,
+                        "test_size": int(meta.get("test_size", 0)),
+                        "top_features": [(name, float(value)) for name, value in top],
                         "retrained": retrain,
+                        "model_version": 2,
                     },
-                    "interpretation": f"Top success factors: {', '.join(n for n, _ in top)}",
+                    "interpretation": (
+                        f"Top historical associations: {', '.join(name for name, _ in top)}. "
+                        "These are correlations, not causal factors or guaranteed forecasts."
+                    ),
+                    "recommendation": "Use this only as a journal review aid; follow your tested risk plan.",
                 }
-        except Exception as exc:
-            logger.warning("ML model training failed: %s", exc)
+        except Exception:
+            logger.exception("Personal ML model training/loading failed for user %s", self.user_id)
 
         return insights
 
@@ -948,7 +979,7 @@ class ForexAI:
                 1.0 if trade.direction == "BUY" else 0.0,
                 float(trade.size or 0),
                 recent_wr,
-                emotion_map.get(trade.emotions or "", 0.5),
+                emotion_map.get((trade.emotions or "").strip().lower(), 0.5),
                 sym_wr,
             ]
         except Exception as exc:
@@ -1115,16 +1146,16 @@ class ForexAI:
             try:
                 existing = self.insights.get(key)
                 if existing:
-                    existing.insight_value = json.dumps(data)
-                    existing.confidence_score = data.get("confidence", 0.5)
-                    existing.data_points += 1
+                    existing.insight_value = json.dumps(data, default=_json_safe)
+                    existing.confidence_score = data.get("confidence", 0.5) or 0.0
+                    existing.data_points = (existing.data_points or 0) + 1
                     existing.last_updated = datetime.utcnow()
                 else:
                     new_row = AIInsight(
                         user_id=self.user_id,
                         insight_type=data.get("type", "general"),
                         insight_key=key,
-                        insight_value=json.dumps(data),
+                        insight_value=json.dumps(data, default=_json_safe),
                         confidence_score=data.get("confidence", 0.5),
                         data_points=1,
                     )

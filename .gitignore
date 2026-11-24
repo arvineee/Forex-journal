@@ -57,3 +57,13 @@ dist/
 *.egg-info/
 
 config.py
+
+# Secrets and runtime data
+.env
+*.db
+instance/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+forex_ai_models/

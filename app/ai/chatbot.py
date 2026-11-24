@@ -164,6 +164,24 @@ def _build_trading_context(user_id: int) -> str:
         except Exception:
             pass
 
+    # Include outcome-labelled multi-timeframe chart learning in conversational context.
+    chart_rows = (AIChartAnalysis.query.filter_by(user_id=user_id)
+                  .order_by(AIChartAnalysis.created_at.desc()).limit(100).all())
+    chart_labelled = [row for row in chart_rows if row.outcome_label is not None]
+    chart_wins = sum(1 for row in chart_labelled if row.outcome_label == 1)
+    chart_losses = len(chart_labelled) - chart_wins
+    chart_lines = []
+    for row in chart_rows[:5]:
+        try:
+            chart_data = json.loads(row.analysis_json)
+            chart_lines.append(
+                f"  {row.symbol} {row.direction or ''}: {chart_data.get('market_bias', 'unclear')} bias; "
+                f"{chart_data.get('setup_type', 'setup unknown')}; "
+                f"outcome={'win' if row.outcome_label == 1 else 'loss' if row.outcome_label == 0 else 'unlabelled'}"
+            )
+        except Exception:
+            continue
+
     context = f"""
 === TRADER PROFILE ===
 Total trades: {total}
@@ -186,6 +204,12 @@ Profit factor: {profit_factor:.2f}
 
 === RECENT TRADES (last 5) ===
 {chr(10).join(recent_lines) or '  No recent trades'}
+
+=== MULTI-TIMEFRAME CHART LEARNING ===
+Saved chart reviews: {len(chart_rows)}
+Outcome-labelled chart reviews: {len(chart_labelled)} ({chart_wins} wins, {chart_losses} losses)
+Recent chart reviews:
+{chr(10).join(chart_lines) or '  No chart reviews saved yet'}
 
 === AI INSIGHTS ALREADY DETECTED ===
 {chr(10).join(insight_lines) or '  Run full analysis to generate insights'}

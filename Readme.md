@@ -108,18 +108,67 @@ The system supports CSV imports and normalizes data. It specifically handles dif
 Distributed under the MIT License.
 
 
-## User timezone support
 
-Each account now has a saved IANA timezone preference. The initial value for existing and new accounts is `Africa/Nairobi`; users can change it under **Account menu → Timezone Settings**, or detect the timezone reported by their device. The preference is account-based and therefore follows the user across devices.
+## Reliability and deployment notes
 
-Database timestamps remain stored as naive UTC values for compatibility with the existing SQLite/SQLAlchemy schema. New trade and account-balance form timestamps are interpreted in the user's selected timezone and converted to UTC before storage. Existing records are not rewritten; legacy naive timestamps are displayed as UTC when converted to the user's timezone. If older records were originally entered in a non-UTC server timezone, review those records before relying on historical local-time analytics.
+1. Copy `.env.example` to `.env`, then set a unique `SECRET_KEY` and your real database/API/mail credentials. Never commit `.env`.
+2. Set `COOKIE_SECURE=true` when serving over HTTPS. For local HTTP development only, set it to `false`.
+3. Install dependencies with `pip install -r requirements.txt`.
+4. Back up the database before applying any schema migration. Existing migrations and user data are intentionally preserved.
+5. Run smoke tests with `python test_app.py` after dependencies are installed.
+6. Configure `AI_MODEL_DIR` to a persistent writable directory shared by application workers if you want trained per-user models to survive restarts. Keep this directory private and backed up.
+7. In production, run `python run_ai_scheduler.py` as one dedicated worker. Do not start a separate scheduler in every Gunicorn/web worker.
 
-### Applying the database migration
+The personal AI uses a user's own closed-trade history. Its machine-learning estimates are retrospective correlations and should not be treated as guaranteed predictions or trading signals.
 
-Back up the database first, then deploy the updated files and run:
 
-```bash
-flask db upgrade
-```
+### Existing database preservation
 
-This adds `users.timezone` with a safe `Africa/Nairobi` default and does not delete or rewrite existing rows. If your deployment does not use Flask-Migrate, add a `VARCHAR(64)` `timezone` column to `users` with default `Africa/Nairobi` after taking a database backup.
+The application now honours `SQLALCHEMY_DATABASE_URI` when explicitly configured. If it is not set, it checks the legacy SQLite location used by the previous version and uses it when that file exists; otherwise it uses a project-local SQLite file. Before deployment, confirm the path in your hosting environment and take a database backup. Do not point the updated application at a new empty database by accident.
+
+### Security action required
+
+The uploaded archive contained a live-looking environment configuration. It has been excluded from this cleaned package. Rotate the old Flask secret key and any database, email, or AI credentials that were present in that file. Put replacement values in your server's private environment configuration, not in source control.
+
+
+## Multi-Timeframe Chart Intelligence
+
+The AI Chart Lab is available from the navigation as **Chart Lab**. Upload four
+screenshots for the same instrument: 4H, 1H, 30M and 15M. The vision analysis
+reviews higher-timeframe bias, market structure, liquidity, BOS/CHoCH, order
+blocks, fair value gaps, entry location, conflicts and invalidation. It stores
+the structured observations for later comparison.
+
+To teach the personal chart model from outcomes, link each saved chart review
+to its corresponding completed journal trade. The system then compares the
+feature profile of winning and losing examples. It withholds a personal numeric
+win-probability estimate until there are at least 40 labelled chart reviews,
+including at least 10 wins and 10 losses. The estimate is calibrated and
+cross-validated, but is still a historical association, not a guarantee.
+
+Before deploying this update:
+1. Back up the database and uploaded files.
+2. Ensure `GEMINI_API_KEY` is configured and `GEMINI_MODEL` supports image input.
+3. Install dependencies from `requirements.txt`.
+4. Run `flask --app manage db upgrade` to create `ai_chart_analyses`.
+5. Restart the Flask application.
+
+Chart screenshots are private to the account that uploaded them. Do not use
+synthetic trade records as real training labels. A chart should only be linked
+to the trade that actually resulted from that setup.
+
+## Chart Intelligence and Performance Centre
+
+The AI Chart Lab accepts four separate screenshots for the same instrument: **4H, 1H, 30M and 15M**. It asks the vision model for top-down market structure, liquidity, BOS/CHoCH, order-block/FVG quality, premium/discount location, confluences, conflicts and invalidation. Session-specific claims must be visible in the chart or supplied context; the model is instructed not to invent them.
+
+The **Performance Intelligence Centre** is available at `/ai/performance`. It summarizes closed-trade results by symbol, strategy, direction and recorded entry hour, and compares chart-feature scores between labelled winners and losers. Entry-hour results use the timestamp as stored by the journal and are not automatically classified as London or New York sessions.
+
+### Personal chart outcome model
+
+Chart analyses become training examples only after they are linked to a completed journal trade with a positive or negative P&L. Breakeven trades are excluded from binary win/loss labels. The personal model requires at least 40 unique labelled trades and at least 10 wins and 10 losses. It uses cross-validation and reports balanced accuracy and Brier score. Until the threshold is met, the application withholds numerical win probabilities. A probability is a historical model estimate, not a guarantee or a substitute for risk management.
+
+Before deployment, back up the database and upload directory, preserve the existing `.env`, install requirements, and run `flask --app manage db upgrade`.
+
+### Adaptive SMC Playbook (Phase 3)
+
+The Performance Intelligence Centre now compares chart conditions against your own realised trade outcomes. It reports weak/mixed/strong condition groups only after at least eight labelled trades are available in a group, compares them with your personal baseline, and shows a nine-factor confluence-score breakdown. These are historical associations, not causal rules, guaranteed edges, trade signals, or win probabilities. Asian/London session features are excluded from these findings unless session timing can be verified separately. The authenticated JSON endpoint is `/ai/smc-playbook`.

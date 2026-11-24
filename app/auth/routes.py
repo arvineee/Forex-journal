@@ -1,11 +1,14 @@
 from datetime import datetime
-from flask import render_template, redirect, url_for, flash, request
+from urllib.parse import urljoin, urlparse
+from flask import render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_user, logout_user, current_user, login_required
 from app import db
 from app.auth import auth_bp
 from app.models import User, LoginActivity
 from app.auth.forms import LoginForm, RegistrationForm, RequestResetForm, ResetPasswordForm
 from app.email import send_reset_email
+from flask_wtf.csrf import validate_csrf
+from wtforms.validators import ValidationError
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
@@ -35,7 +38,7 @@ def login():
             flash('Invalid username or password', 'danger')
             return redirect(url_for('auth.login'))
         
-        login_user(user, remember=form.remember_me.data)
+        login_user(user, remember=bool(form.remember_me.data), duration=current_app.config.get("REMEMBER_COOKIE_DURATION"))
 
         # --- Track login activity ---
         user.last_login_at = datetime.utcnow()
@@ -49,12 +52,22 @@ def login():
         # -----------------------------
 
         next_page = request.args.get('next')
-        return redirect(next_page or url_for('dashboard.index'))
+        if next_page:
+            target = urlparse(urljoin(request.host_url, next_page))
+            if target.scheme in ('http', 'https') and target.netloc == request.host:
+                return redirect(next_page)
+        return redirect(url_for('dashboard.index'))
     
     return render_template('auth/login.html', title='Sign In', form=form)
 
-@auth_bp.route('/logout')
+@auth_bp.route('/logout', methods=['POST'])
+@login_required
 def logout():
+    try:
+        validate_csrf(request.form.get('csrf_token'))
+    except ValidationError:
+        flash('Your session expired. Please try again.', 'warning')
+        return redirect(url_for('dashboard.index'))
     logout_user()
     return redirect(url_for('main.index'))
 

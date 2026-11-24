@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}Trading Performance Intelligence{% endblock %}
+{% block content %}
+<style>
+  .performance-wrap { max-width: 1440px; margin: auto; }
+  .metric-card { background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: 16px; height: 100%; }
+  .metric-label { color: var(--bs-secondary-color); font-size: .82rem; }
+  .metric-value { font-size: clamp(1.35rem, 3vw, 2rem); font-weight: 750; letter-spacing: -.04em; }
+  .section-card { border: 1px solid var(--bs-border-color); border-radius: 16px; overflow: hidden; }
+  .table thead th { color: var(--bs-secondary-color); font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+  .positive { color: #16a36a; } .negative { color: #dc5b63; }
+</style>
+<div class="container-fluid py-4 performance-wrap">
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+      <div class="text-uppercase small fw-bold text-primary mb-1">Personal trading analytics</div>
+      <h2 class="fw-bold mb-1">Performance Intelligence Centre</h2>
+      <p class="text-muted mb-0">Find the conditions behind your strongest and weakest trading results.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-secondary" href="{{ url_for('ai.chart_lab') }}"><i class="fas fa-chart-line me-1"></i>Chart Lab</a>
+      <a class="btn btn-primary" href="{{ url_for('ai.chart_learning_status') }}"><i class="fas fa-sync-alt me-1"></i>Refresh learning</a>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    {% set metrics = [
+      ('Closed trades', stats.closed, 'fa-check-circle'),
+      ('Win rate', stats.win_rate|string ~ '%', 'fa-bullseye'),
+      ('Net P&L', stats.net_pnl, 'fa-wallet'),
+      ('Profit factor', stats.profit_factor if stats.profit_factor is not none else '—', 'fa-scale-balanced'),
+      ('Average trade', stats.expectancy, 'fa-chart-line'),
+      ('Chart-labelled trades', stats.labelled_chart_trades, 'fa-brain')
+    ] %}
+    {% for label, value, icon in metrics %}
+    <div class="col-6 col-md-4 col-xl-2"><div class="metric-card p-3">
+      <div class="d-flex justify-content-between align-items-center mb-3"><span class="metric-label">{{ label }}</span><i class="fas {{ icon }} text-primary"></i></div>
+      <div class="metric-value {% if label in ['Net P&L','Average trade'] %}{{ 'positive' if value|float > 0 else 'negative' if value|float < 0 else '' }}{% endif %}">{% if label in ['Net P&L','Average trade'] %}{{ '%+.2f'|format(value|float) }}{% else %}{{ value }}{% endif %}</div>
+    </div></div>
+    {% endfor %}
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-lg-4"><div class="section-card h-100 p-3 p-lg-4">
+      <h5 class="fw-bold">Outcome breakdown</h5>
+      <div class="d-flex justify-content-between py-2 border-bottom"><span class="text-muted">Winning trades</span><strong class="positive">{{ stats.wins }}</strong></div>
+      <div class="d-flex justify-content-between py-2 border-bottom"><span class="text-muted">Losing trades</span><strong class="negative">{{ stats.losses }}</strong></div>
+      <div class="d-flex justify-content-between py-2 border-bottom"><span class="text-muted">Breakeven</span><strong>{{ stats.breakeven }}</strong></div>
+      <div class="d-flex justify-content-between py-2 border-bottom"><span class="text-muted">Gross profit</span><strong class="positive">{{ '%.2f'|format(stats.gross_profit) }}</strong></div>
+      <div class="d-flex justify-content-between py-2"><span class="text-muted">Gross loss</span><strong class="negative">{{ '%.2f'|format(stats.gross_loss) }}</strong></div>
+      <div class="small text-muted mt-2">Win rate excludes breakeven trades. Profit factor is gross profit divided by absolute gross loss.</div>
+    </div></div>
+    <div class="col-lg-8"><div class="section-card h-100 p-3 p-lg-4">
+      <div class="d-flex flex-wrap justify-content-between gap-2"><div><h5 class="fw-bold mb-1">Personal chart-learning model</h5><p class="text-muted small">Predictions unlock only after enough completed chart-linked trades.</p></div>
+        {% if model_metrics %}<span class="badge text-bg-success align-self-start">Model trained</span>{% else %}<span class="badge text-bg-warning align-self-start">Collecting examples</span>{% endif %}
+      </div>
+      {% if model_metrics %}
+        <div class="row g-3 mt-1">
+          <div class="col-4"><div class="metric-label">Labelled examples</div><div class="h3 fw-bold">{{ model_metrics.labelled_samples }}</div></div>
+          <div class="col-4"><div class="metric-label">Balanced accuracy</div><div class="h3 fw-bold">{{ (model_metrics.balanced_accuracy * 100)|round(1) }}%</div></div>
+          <div class="col-4"><div class="metric-label">Brier score</div><div class="h3 fw-bold">{{ model_metrics.brier_score }}</div></div>
+        </div>
+        <p class="small text-muted mb-0">Metrics are based on cross-validation. Balanced accuracy measures classification performance; a lower Brier score indicates better probability calibration.</p>
+      {% else %}
+        <div class="alert alert-warning mb-2">{{ learning_status.message if learning_status else 'More completed chart examples are required.' }}</div>
+        <div class="d-flex justify-content-between small"><span>Chart analyses saved</span><strong>{{ stats.chart_analyses }}</strong></div>
+        <div class="d-flex justify-content-between small"><span>Linked to closed trades with outcomes</span><strong>{{ stats.labelled_chart_trades }}</strong></div>
+        <a class="btn btn-primary btn-sm mt-3" href="{{ url_for('ai.chart_lab') }}">Add chart analysis</a>
+      {% endif %}
+    </div></div>
+  </div>
+
+  {% for title, rows, empty in [
+    ('Performance by currency pair', by_symbol, 'No closed trade results by symbol yet.'),
+    ('Performance by strategy', by_strategy, 'Add strategy names to your trades to compare them.'),
+    ('Performance by direction', by_direction, 'No BUY/SELL performance data yet.'),
+    ('Performance by recorded entry hour', by_entry_hour, 'No entry-time performance data yet.')
+  ] %}
+  <div class="section-card mb-4">
+    <div class="p-3 p-lg-4 border-bottom"><h5 class="fw-bold mb-0">{{ title }}</h5></div>
+    {% if rows %}<div class="table-responsive"><table class="table table-hover align-middle mb-0">
+      <thead><tr><th class="ps-4">Group</th><th>Trades</th><th>Win rate</th><th>Net P&L</th><th>Average P&L</th></tr></thead>
+      <tbody>{% for row in rows %}<tr><td class="ps-4 fw-semibold">{{ row.label }}</td><td>{{ row.count }}</td><td>{{ row.win_rate }}%</td><td class="fw-semibold {{ 'positive' if row.net_pnl > 0 else 'negative' if row.net_pnl < 0 else '' }}">{{ '%+.2f'|format(row.net_pnl) }}</td><td>{{ '%+.2f'|format(row.average_pnl) }}</td></tr>{% endfor %}</tbody>
+    </table></div>{% else %}<p class="text-muted p-4 mb-0">{{ empty }}</p>{% endif %}
+  </div>
+  {% endfor %}
+
+  <div class="section-card mb-4">
+    <div class="p-3 p-lg-4 border-bottom"><h5 class="fw-bold mb-1">What separates your wins from your losses?</h5><p class="small text-muted mb-0">Average chart-feature scores from your linked, labelled examples (0 = weak, 1 = strong).</p></div>
+    {% if comparison.features %}<div class="table-responsive"><table class="table table-hover align-middle mb-0">
+      <thead><tr><th class="ps-4">Chart condition</th><th>Winning trades</th><th>Losing trades</th><th>Difference</th></tr></thead>
+      <tbody>{% for feature in comparison.features|sort(attribute='difference', reverse=True) %}<tr><td class="ps-4 fw-semibold">{{ feature.name }}</td><td>{{ feature.win_average }}</td><td>{{ feature.loss_average }}</td><td class="{{ 'positive' if feature.difference > 0 else 'negative' if feature.difference < 0 else '' }}">{{ '%+.2f'|format(feature.difference) }}</td></tr>{% endfor %}</tbody>
+    </table></div>{% else %}<p class="text-muted p-4 mb-0">Link chart analyses to completed winning and losing trades to reveal meaningful differences.</p>{% endif %}
+  </div>
+
+  <div class="section-card mb-4">
+    <div class="p-3 p-lg-4 border-bottom">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div><h5 class="fw-bold mb-1">Your adaptive SMC playbook</h5>
+          <p class="small text-muted mb-0">Learns which chart conditions have accompanied your own realised wins and losses.</p></div>
+        <span class="badge text-bg-info">{{ smc_playbook.sample_size }} labelled trades</span>
+      </div>
+    </div>
+    <div class="p-3 p-lg-4">
+      {% if smc_playbook.baseline %}
+        <div class="row g-3 mb-3">
+          <div class="col-6 col-md-4"><div class="metric-label">Baseline win rate</div><div class="h3 fw-bold">{{ smc_playbook.baseline.win_rate }}%</div></div>
+          <div class="col-6 col-md-4"><div class="metric-label">Baseline expectancy</div><div class="h3 fw-bold">{{ '%+.2f'|format(smc_playbook.baseline.expectancy) }}</div></div>
+          <div class="col-12 col-md-4"><div class="metric-label">Minimum group size</div><div class="h3 fw-bold">{{ smc_playbook.minimum_bucket_samples }} trades</div></div>
+        </div>
+        {% if smc_playbook.smc_score.groups %}
+          <h6 class="fw-bold mt-4">Composite SMC confluence score</h6>
+          <p class="small text-muted">Nine chart factors averaged into broad descriptive bands. This is not a signal or probability.</p>
+          <div class="table-responsive mb-4"><table class="table table-sm align-middle">
+            <thead><tr><th>Score band</th><th>Trades</th><th>Win rate</th><th>Average P&amp;L</th></tr></thead>
+            <tbody>{% for group in smc_playbook.smc_score.groups %}<tr><td class="text-capitalize fw-semibold">{{ group.band }}</td><td>{{ group.trades }}</td><td>{{ group.win_rate }}%</td><td>{{ '%+.2f'|format(group.expectancy) }}</td></tr>{% endfor %}</tbody>
+          </table></div>
+        {% endif %}
+        <h6 class="fw-bold">Conditions associated with your outcomes</h6>
+        {% if smc_playbook.findings %}
+          <div class="table-responsive"><table class="table table-hover align-middle mb-0">
+            <thead><tr><th>Condition</th><th>Observed level</th><th>Trades</th><th>Win rate</th><th>vs baseline</th><th>Average P&amp;L</th><th>Reading</th></tr></thead>
+            <tbody>{% for finding in smc_playbook.findings %}<tr>
+              <td class="fw-semibold">{{ finding.feature }}</td><td class="text-capitalize">{{ finding.band }}</td><td>{{ finding.trades }}</td><td>{{ finding.win_rate }}%</td>
+              <td class="{{ 'positive' if finding.win_rate_delta > 0 else 'negative' if finding.win_rate_delta < 0 else '' }}">{{ '%+.1f'|format(finding.win_rate_delta) }} pp</td>
+              <td>{{ '%+.2f'|format(finding.expectancy) }}</td><td><span class="badge {{ 'text-bg-success' if finding.signal == 'favourable association' else 'text-bg-warning' if finding.signal == 'review / potential weakness' else 'text-bg-secondary' }}">{{ finding.signal }}</span></td>
+            </tr>{% endfor %}</tbody>
+          </table></div>
+        {% else %}<p class="text-muted mb-0">No condition group has reached the minimum sample size yet. Keep linking chart analyses to closed trades.</p>{% endif %}
+      {% else %}<p class="text-muted mb-0">{{ smc_playbook.message }}</p>{% endif %}
+      <p class="small text-muted mt-3 mb-0">{{ smc_playbook.message }}</p>
+    </div>
+  </div>
+
+  <div class="alert alert-secondary small"><strong>Interpretation:</strong> These statistics describe recorded historical outcomes, not guaranteed future results. Entry-hour groups use the timestamps stored in your journal; they are not labelled London or New York sessions because the journal's timezone is not established here.</div>
+</div>
+{% endblock %}

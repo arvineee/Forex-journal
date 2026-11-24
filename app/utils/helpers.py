@@ -1,3 +1,4 @@
+import math
 import os
 import uuid
 from werkzeug.utils import secure_filename
@@ -12,33 +13,27 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def save_image(file):
-    if file and allowed_file(file.filename):
-        # Generate unique filename
-        file_ext = os.path.splitext(file.filename)[1]
-        filename = str(uuid.uuid4()) + file_ext
-        file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
-        
-        # Ensure directory exists
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        
-        # Open and optimize image
-        img = Image.open(file)
-        
-        # Resize if too large (max 1200px width)
-        if img.width > 1200:
-            ratio = 1200 / img.width
-            new_height = int(img.height * ratio)
-            img = img.resize((1200, new_height), Image.Resampling.LANCZOS)
-        
-        # Convert to RGB if necessary
-        if img.mode in ('RGBA', 'P'):
-            img = img.convert('RGB')
-        
-        # Save optimized image
-        img.save(file_path, 'JPEG', quality=85, optimize=True)
-        
+    """Validate, normalize and store an uploaded image as an optimized JPEG."""
+    if not file or not allowed_file(getattr(file, "filename", "")):
+        return None
+    filename = f"{uuid.uuid4()}.jpg"
+    file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+    try:
+        with Image.open(file) as source:
+            if source.format not in {"JPEG", "PNG", "GIF", "WEBP"}:
+                return None
+            source.load()
+            img = source.convert("RGB")
+            if img.width > 1600 or img.height > 1600:
+                img.thumbnail((1600, 1600), Image.Resampling.LANCZOS)
+            img.save(file_path, "JPEG", quality=86, optimize=True)
         return filename
-    return None
+    except (OSError, ValueError, Image.DecompressionBombError):
+        current_app.logger.warning("Rejected invalid or unsafe image upload")
+        return None
+
 
 def calculate_pnl(direction, entry_price, exit_price, size, symbol):
     """
@@ -202,55 +197,43 @@ def calculate_pnl(direction, entry_price, exit_price, size, symbol):
 
 
 def validate_trade_data(form_data):
-    """
-    Validate trade data before saving.
-    
-    Args:
-        form_data: Dictionary containing trade form data
-    
-    Returns:
-        tuple: (is_valid, error_message)
-    """
+    """Validate incoming trade data without allowing malformed values to crash."""
     errors = []
-    
-    # Validate required fields
-    if not form_data.get('symbol'):
-        errors.append("Symbol is required")
-    
-    if not form_data.get('direction') or form_data['direction'] not in ['BUY', 'SELL']:
+    if not form_data.get('symbol') or len(str(form_data.get('symbol')).strip()) > 10:
+        errors.append("A valid symbol (maximum 10 characters) is required")
+    if str(form_data.get('direction', '')).upper() not in ('BUY', 'SELL'):
         errors.append("Valid direction (BUY/SELL) is required")
-    
-    if not form_data.get('entry_price') or float(form_data['entry_price']) <= 0:
-        errors.append("Valid entry price is required")
-    
-    if not form_data.get('size') or float(form_data['size']) <= 0:
-        errors.append("Valid position size is required")
-    
-    # Validate exit price if provided
-    if form_data.get('exit_price'):
+
+    numeric_fields = ('entry_price', 'size')
+    parsed = {}
+    for field in numeric_fields:
+        try:
+            value = float(form_data.get(field))
+            if not math.isfinite(value) or value <= 0:
+                raise ValueError
+            parsed[field] = value
+        except (ValueError, TypeError):
+            errors.append(f"Valid {field.replace('_', ' ')} greater than 0 is required")
+
+    if form_data.get('exit_price') not in (None, ''):
         try:
             exit_price = float(form_data['exit_price'])
-            if exit_price <= 0:
-                errors.append("Exit price must be greater than 0")
+            if not math.isfinite(exit_price) or exit_price <= 0:
+                raise ValueError
         except (ValueError, TypeError):
-            errors.append("Invalid exit price format")
-    
-    # Validate dates
+            errors.append("Exit price must be a valid number greater than 0")
+
     if form_data.get('exit_time') and form_data.get('entry_time'):
         try:
             from datetime import datetime
-            entry_time = datetime.fromisoformat(form_data['entry_time'])
-            exit_time = datetime.fromisoformat(form_data['exit_time'])
-            
+            entry_time = datetime.fromisoformat(str(form_data['entry_time']))
+            exit_time = datetime.fromisoformat(str(form_data['exit_time']))
             if exit_time < entry_time:
                 errors.append("Exit time cannot be before entry time")
         except (ValueError, TypeError):
             errors.append("Invalid date format")
-    
-    if errors:
-        return False, "; ".join(errors)
-    
-    return True, None
+
+    return (not errors, "; ".join(errors) if errors else None)
 
 
 def format_currency(amount, decimals=2):

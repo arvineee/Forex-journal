@@ -4,7 +4,6 @@ from datetime import datetime
 from app import db
 from app.account import account_bp
 from app.models import AccountBalance, Trade
-from app.utils.timezones import valid_timezone, DEFAULT_TIMEZONE, local_to_utc_naive, to_user_timezone
 
 
 def auto_update_balance_on_close(trade):
@@ -59,7 +58,7 @@ def add_balance():
     if form.validate_on_submit():
         balance = AccountBalance(
             balance=form.balance.data,
-            date=local_to_utc_naive(form.date.data, current_user.timezone),
+            date=form.date.data,
             notes=form.notes.data,
             user_id=current_user.id
         )
@@ -68,8 +67,6 @@ def add_balance():
         flash('Account balance recorded successfully!', 'success')
         return redirect(url_for('account.balance_history'))
 
-    if request.method == 'GET':
-        form.date.data = to_user_timezone(datetime.utcnow(), current_user.timezone).replace(tzinfo=None)
     return render_template('account/add_balance.html', form=form)
 
 
@@ -85,7 +82,7 @@ def edit_balance(balance_id):
 
     if form.validate_on_submit():
         balance.balance = form.balance.data
-        balance.date = local_to_utc_naive(form.date.data, current_user.timezone)
+        balance.date = form.date.data
         balance.notes = form.notes.data
         db.session.commit()
         flash('Account balance updated successfully!', 'success')
@@ -93,7 +90,7 @@ def edit_balance(balance_id):
 
     elif request.method == 'GET':
         form.balance.data = balance.balance
-        form.date.data = to_user_timezone(balance.date, current_user.timezone).replace(tzinfo=None)
+        form.date.data = balance.date
         form.notes.data = balance.notes
 
     return render_template('account/edit_balance.html', form=form, balance=balance)
@@ -128,30 +125,3 @@ def get_current_balance():
     else:
         return jsonify({'balance': None, 'message': 'No balance records found'})
 
-
-
-@account_bp.route('/timezone', methods=['GET', 'POST'])
-@login_required
-def timezone_settings():
-    from app.utils.timezones import COMMON_TIMEZONES
-    if request.method == 'POST':
-        selected = (request.form.get('timezone') or '').strip()
-        if not valid_timezone(selected):
-            flash('Please choose a valid timezone.', 'danger')
-        else:
-            current_user.timezone = selected
-            db.session.commit()
-            flash('Your timezone preference has been saved.', 'success')
-            return redirect(url_for('account.timezone_settings'))
-    return render_template('account/timezone.html', timezones=COMMON_TIMEZONES)
-
-
-@account_bp.route('/timezone/detect', methods=['POST'])
-@login_required
-def detect_timezone():
-    selected = (request.get_json(silent=True) or {}).get('timezone', '')
-    if not valid_timezone(selected):
-        return jsonify({'success': False, 'message': 'Invalid timezone.'}), 400
-    current_user.timezone = selected
-    db.session.commit()
-    return jsonify({'success': True, 'timezone': selected})

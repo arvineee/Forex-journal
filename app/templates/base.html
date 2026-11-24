@@ -104,6 +104,50 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #777;
         }
+
+        /* Refined journal UI: consistent surfaces, spacing, typography and mobile layout. */
+        :root {
+            --journal-bg: #0b1220;
+            --journal-surface: #111c2e;
+            --journal-surface-raised: #17243a;
+            --journal-border: rgba(148, 163, 184, .16);
+            --journal-accent: #38bdf8;
+        }
+        body { background: var(--journal-bg); color: #e5edf7; line-height: 1.55; }
+        .navbar { background: rgba(10, 17, 30, .96) !important; border-bottom: 1px solid var(--journal-border); }
+        .navbar-brand { letter-spacing: -.025em; }
+        .nav-link { color: #b8c6d9 !important; transition: color .18s ease; }
+        .nav-link:hover, .nav-link:focus { color: var(--journal-accent) !important; }
+        main.container-fluid { max-width: 1600px; padding-left: clamp(12px, 2.2vw, 32px); padding-right: clamp(12px, 2.2vw, 32px); }
+        .card, .dropdown-menu, .list-group-item {
+            background: var(--journal-surface); color: #e5edf7;
+            border-color: var(--journal-border);
+        }
+        .card { border-radius: 14px; box-shadow: 0 8px 28px rgba(0,0,0,.14); }
+        .card-header { background: rgba(255,255,255,.025); border-bottom-color: var(--journal-border); }
+        .form-control, .form-select {
+            background-color: #0e192a; color: #e5edf7; border-color: #33445d;
+            border-radius: 9px; min-height: 42px;
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: #0e192a; color: #fff; border-color: var(--journal-accent);
+            box-shadow: 0 0 0 .2rem rgba(56,189,248,.14);
+        }
+        .btn { border-radius: 9px; font-weight: 600; transition: transform .16s ease, filter .16s ease; }
+        .btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+        .btn-primary { background: linear-gradient(135deg,#0284c7,#2563eb); }
+        .table { --bs-table-bg: transparent; --bs-table-color: #dbe7f5; --bs-table-border-color: var(--journal-border); }
+        .table thead th { color: #9fb2ca; font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; }
+        .text-muted { color: #91a2b8 !important; }
+        a { text-underline-offset: 3px; }
+        .alert { border-radius: 12px; }
+        footer { border-top: 1px solid var(--journal-border); background: #080f1c !important; }
+        @media (max-width: 768px) {
+            main.container-fluid { padding-left: 12px; padding-right: 12px; }
+            .card-body { padding: 1rem; }
+            .table-responsive { border-radius: 10px; }
+            footer .text-end { text-align: left !important; margin-top: 1rem; }
+        }
     </style>
     
     {% block styles %}{% endblock %}
@@ -136,6 +180,16 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('ai.dashboard') }}">
                             <i class="fas fa-robot me-1"></i>AI Insights
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('ai.chart_lab') }}">
+                            <i class="fas fa-chart-line me-1"></i>Chart Lab
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('ai.performance_centre') }}">
+                            <i class="fas fa-brain me-1"></i>Performance
                         </a>
                     </li>
 
@@ -180,7 +234,6 @@
                             <i class="fas fa-user me-1"></i>{{ current_user.username }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{{ url_for('account.timezone_settings') }}"><i class="fas fa-clock me-2"></i>Timezone Settings</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('trades.export_trades') }}">
                                 <i class="fas fa-download me-2"></i>Export Trades
                             </a></li>
@@ -193,9 +246,14 @@
                             </a></li>
                             {% endif %}
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
-                                <i class="fas fa-sign-out-alt me-2"></i>Logout
-                            </a></li>
+                            <li>
+                                <form method="POST" action="{{ url_for('auth.logout') }}" class="px-3 py-1">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="dropdown-item px-0">
+                                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                    </button>
+                                </form>
+                            </li>
                         </ul>
                     </li>
                     {% else %}

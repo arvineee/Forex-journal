@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -6,14 +7,33 @@ load_dotenv()
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
+    ENV = os.environ.get("ENV", "production").lower()
     # Database - Configured for PythonAnywhere MySQL
-    SQLALCHEMY_DATABASE_URI =  "sqlite:///forex_journal.db" 
+    _database_uri = os.environ.get("SQLALCHEMY_DATABASE_URI") or os.environ.get("DATABASE_URL")
+    # Ignore malformed legacy DATABASE_URL values rather than silently switching databases.
+    if not _database_uri or " " in _database_uri or "://" not in _database_uri:
+        legacy_db = "/home/FelixJournal/Forex-journal/forex_journal.db"
+        if os.path.exists(legacy_db):
+            _database_uri = "sqlite:////home/FelixJournal/Forex-journal/forex_journal.db"
+        else:
+            _database_uri = f"sqlite:///{os.path.join(BASE_DIR, 'forex_journal.db')}"
+    SQLALCHEMY_DATABASE_URI = _database_uri
+    if SQLALCHEMY_DATABASE_URI.startswith("postgres://"):
+        SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI.replace("postgres://", "postgresql://", 1)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     # pool_recycle is important on PythonAnywhere to prevent "MySQL server has gone away" errors
     SQLALCHEMY_ENGINE_OPTIONS = {"pool_recycle": 280}
 
     # Security
-    SECRET_KEY = os.environ.get("SECRET_KEY", "mibgssyohd26h95x£>{fj48ivsv")
+    SECRET_KEY = os.environ.get("SECRET_KEY") or (None if ENV == "production" else "development-only-insecure-key")
+    REMEMBER_COOKIE_DURATION = timedelta(days=int(os.environ.get("REMEMBER_COOKIE_DAYS", "30")))
+    REMEMBER_COOKIE_HTTPONLY = True
+    REMEMBER_COOKIE_SAMESITE = "Lax"
+    REMEMBER_COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "true").lower() == "true"
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = "Lax"
+    SESSION_COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "true").lower() == "true"
+    PERMANENT_SESSION_LIFETIME = timedelta(days=7)
 
     # Email - Using your Gmail App Password
     MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
@@ -50,11 +70,12 @@ class Config:
 
     # Gemini AI (trade pattern analysis, AI insights)
     GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
-    GEMINI_MODEL = os.environ.get('GEMINI_MODEL', 'gemini-2.0-flash-lite')
+    GEMINI_MODEL = os.environ.get('GEMINI_MODEL', 'gemini-3.1-flash-lite')
+    AI_MODEL_DIR = os.environ.get("AI_MODEL_DIR", os.path.join(BASE_DIR, "instance", "ai_models"))
 
     # Application
     DEBUG = os.environ.get('DEBUG', 'false').lower() == 'true'
-    ENV = os.environ.get('ENV', 'production')
+    ENV = os.environ.get("ENV", "production").lower()
 
     # Video upload configuration
     VIDEO_FOLDER = os.path.join(BASE_DIR, 'app', 'static', 'videos')
@@ -62,7 +83,7 @@ class Config:
 
     # General file upload configuration (trade chart screenshots, etc.)
     UPLOAD_FOLDER = os.path.join(BASE_DIR, 'app', 'static', 'uploads')
-    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB
+    MAX_CONTENT_LENGTH = 40 * 1024 * 1024  # Four chart screenshots (8 MB each) plus request overhead
     
 # Ensure the video folder exists
 os.makedirs(os.path.join(BASE_DIR, 'app', 'static', 'videos'), exist_ok=True)
