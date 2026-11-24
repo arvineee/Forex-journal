@@ -478,3 +478,45 @@ def build_smc_playbook(user_id, minimum_bucket_samples=8):
                     "not proof that a condition causes a win. Small groups are hidden until they meet "
                     f"the minimum of {minimum_bucket_samples} trades."),
     }
+
+
+# ---------------------------------------------------------------------------
+# Single-setup SMC confluence view (used by the chart analysis detail page)
+# ---------------------------------------------------------------------------
+
+SMC_CORE_KEYS = (
+    "trend_alignment", "structure_quality", "liquidity_sweep",
+    "bos_choch_confirmation", "order_block_quality", "fvg_quality",
+    "ob_fvg_retracement", "premium_discount_location", "entry_location",
+)  # same nine factors build_smc_playbook() averages into its confluence score
+
+
+def confluence_score(features):
+    """Mean of the nine core SMC factor scores (0-1) and its low/medium/high band."""
+    features = features if isinstance(features, dict) else {}
+    values = [_bounded(features.get(key), 0, 1, 0.5) for key in SMC_CORE_KEYS]
+    score = sum(values) / len(values)
+    band = "low" if score < 0.4 else "high" if score > 0.7 else "medium"
+    return round(score, 3), band
+
+
+def score_smc_setup(user_id, parsed):
+    """Explain one analysed setup against the user's own SMC history.
+
+    Returns the factor-by-factor bands, the confluence score and, when the user has
+    enough linked closed trades, how setups in the same confluence band performed.
+    This is descriptive context, not a win probability.
+    """
+    features = (parsed or {}).get("features", {})
+    score, band = confluence_score(features)
+    playbook = build_smc_playbook(user_id)
+    groups = ((playbook.get("smc_score") or {}).get("groups")) or []
+    history = next((g for g in groups if g["band"] == band), None)
+    factors = [
+        {"name": label, "key": key, "score": round(_bounded(features.get(key), 0, 1, 0.5), 2),
+         "band": _feature_band(_bounded(features.get(key), 0, 1, 0.5))}
+        for key, label in SMC_PLAYBOOK_FEATURES.items()
+    ]
+    return {"score": score, "band": band, "history": history,
+            "baseline": playbook.get("baseline"), "factors": factors,
+            "sample_size": playbook.get("sample_size", 0)}

@@ -172,3 +172,19 @@ Before deployment, back up the database and upload directory, preserve the exist
 ### Adaptive SMC Playbook (Phase 3)
 
 The Performance Intelligence Centre now compares chart conditions against your own realised trade outcomes. It reports weak/mixed/strong condition groups only after at least eight labelled trades are available in a group, compares them with your personal baseline, and shows a nine-factor confluence-score breakdown. These are historical associations, not causal rules, guaranteed edges, trade signals, or win probabilities. Asian/London session features are excluded from these findings unless session timing can be verified separately. The authenticated JSON endpoint is `/ai/smc-playbook`.
+
+
+### SMC demo account (synthetic data)
+
+Use a throwaway or development database, not your live journal.
+
+```bash
+flask --app manage db upgrade                  # creates ai_chart_analyses if needed
+python smc_demo/generate_smc_demo.py           # optional: regenerate (default 30 setups, seed 2026)
+python seed_smc_demo.py                        # creates user smc_demo (password printed; --password to choose)
+python seed_smc_demo.py --remove               # deletes the demo user, trades, analyses and files
+```
+
+Then log in as `smc_demo` and open **Chart Lab**, choose a setup and use *View analysis*, then open **Performance** for the SMC playbook.
+
+What is real and what is not: the charts, trades and analyses are generated. The saved analyses are written directly in Chart Lab's JSON schema, so the live Gemini vision step is not exercised. The simulator ties win odds to setup quality, so any pattern the playbook or model finds is built into the data and says nothing about real markets. The personal chart model unlocks at 40 labelled trades (10 wins, 10 losses); even then, small synthetic samples give cross-validated metrics close to chance. Use `--count 150` on the generator for a larger set and check the reported metrics rather than a single probability.

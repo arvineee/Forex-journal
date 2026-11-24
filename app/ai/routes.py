@@ -1,16 +1,17 @@
 """
 AI Routes for Forex Journal
 """
+import json
 import logging
-from flask import render_template, request, jsonify, current_app
+from flask import render_template, request, jsonify, current_app, abort
 from flask_login import login_required, current_user
 from app import db
-from app.models import Trade
+from app.models import Trade, TradeImage
 from . import ai_bp
 from .learning_engine import ForexAI
 from .chatbot import ForexChatbot
 from .models import AIInsight, AILearningLog, AIChartAnalysis
-from .chart_intelligence import analyse_four_timeframes, predict_from_chart, learn_chart_outcomes, compare_chart_outcomes, build_smc_playbook
+from .chart_intelligence import analyse_four_timeframes, predict_from_chart, learn_chart_outcomes, compare_chart_outcomes, build_smc_playbook, score_smc_setup
 
 logger = logging.getLogger(__name__)
 
@@ -184,7 +185,7 @@ def chart_lab():
     db.session.commit()
 
     recent = (AIChartAnalysis.query.filter_by(user_id=current_user.id)
-              .order_by(AIChartAnalysis.created_at.desc()).limit(12).all())
+              .order_by(AIChartAnalysis.created_at.desc()).limit(40).all())
     closed_trades = (Trade.query.filter_by(user_id=current_user.id, status='closed')
                      .order_by(Trade.entry_time.desc()).limit(100).all())
     learning = learn_chart_outcomes(current_user.id)
@@ -194,6 +195,37 @@ def chart_lab():
     return render_template('ai/chart_lab.html', result=result, prediction=prediction,
                            error=error, recent=recent, closed_trades=closed_trades,
                            learning=learning, outcome_comparison=outcome_comparison)
+
+
+@ai_bp.route('/chart-analysis/<int:analysis_id>', methods=['GET'])
+@login_required
+def chart_analysis_detail(analysis_id):
+    """Replay a stored four-timeframe analysis: charts, SMC reading, history-based context.
+
+    Works without a Gemini key because it reads the analysis that was already saved.
+    """
+    record = AIChartAnalysis.query.filter_by(id=analysis_id, user_id=current_user.id).first_or_404()
+    try:
+        parsed = json.loads(record.analysis_json)
+        images = json.loads(record.image_files_json)
+    except (TypeError, ValueError):
+        abort(404)
+    trade = (Trade.query.filter_by(id=record.trade_id, user_id=current_user.id).first()
+             if record.trade_id else None)
+    result_image = None
+    if trade is not None:
+        result_image = TradeImage.query.filter_by(trade_id=trade.id, image_type='exit_chart').first()
+    try:
+        prediction = predict_from_chart(current_user.id, parsed)
+        smc = score_smc_setup(current_user.id, parsed)
+    except Exception:
+        db.session.rollback()
+        logger.exception("Could not build learning context for chart analysis %s", analysis_id)
+        prediction, smc = None, None
+    in_sample = bool(trade is not None and trade.status == 'closed' and record.outcome_label is not None)
+    return render_template('ai/chart_detail.html', record=record, result=parsed, images=images,
+                           trade=trade, result_image=result_image, prediction=prediction,
+                           smc=smc, in_sample=in_sample)
 
 
 @ai_bp.route('/chart-analysis/<int:analysis_id>/link', methods=['POST'])

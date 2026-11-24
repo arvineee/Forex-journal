@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Chart analysis #{{ record.id }} · {{ record.symbol }}{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-3">
+    <div>
+      <a class="small text-decoration-none" href="{{ url_for('ai.chart_lab') }}">&larr; Chart Lab</a>
+      <h2 class="mb-1 mt-1">{{ record.symbol }} · {{ record.direction or result.setup_direction }}</h2>
+      <div>
+        <span class="badge bg-dark">{{ result.market_bias|upper }}</span>
+        <span class="badge bg-secondary">{{ result.setup_direction|upper }}</span>
+        <span class="text-muted small ms-2">Analysis #{{ record.id }} · captured {{ record.created_at|datetimeformat }}</span>
+      </div>
+      <h5 class="mt-2 mb-0">{{ result.setup_type }}</h5>
+    </div>
+  </div>
+
+  {% if trade and trade.notes and trade.notes.startswith('[DEMO]') %}
+  <div class="alert alert-info small">Synthetic demo setup: the charts and the simulated trade are generated, not real market data.</div>
+  {% endif %}
+
+  <div class="row g-3 mb-4">
+    {% for tf in ['4H','1H','30M','15M'] %}
+      {% if images.get(tf) %}
+      <div class="col-md-6">
+        <div class="card shadow-sm h-100"><div class="card-body p-2">
+          <a href="{{ url_for('static', filename='uploads/' + images[tf]) }}" target="_blank" rel="noopener">
+            <img class="img-fluid rounded" loading="lazy" alt="{{ record.symbol }} {{ tf }} chart"
+                 src="{{ url_for('static', filename='uploads/' + images[tf]) }}">
+          </a>
+        </div></div>
+      </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  <div class="card shadow-sm mb-4"><div class="card-body p-4">
+    <h5>How the AI read it</h5>
+    <p>{{ result.summary }}</p>
+    <div class="row g-3">
+      {% for tf in ['4H','1H','30M','15M'] %}
+      <div class="col-md-6"><div class="border rounded-3 p-3 h-100">
+        <div class="fw-bold">{{ tf }} · {{ result.timeframes[tf].bias }}</div>
+        <p class="small mb-1">{{ result.timeframes[tf].structure }}</p>
+        <p class="small mb-1"><strong>Liquidity:</strong> {{ result.timeframes[tf].liquidity }}</p>
+        <p class="small mb-1"><strong>Key levels:</strong> {{ result.timeframes[tf].key_levels }}</p>
+        <div class="small text-muted">Visual confidence: {{ (result.timeframes[tf].confidence * 100)|round|int }}%</div>
+      </div></div>
+      {% endfor %}
+    </div>
+    <div class="row g-3 mt-1">
+      <div class="col-md-6"><h6>Confluences</h6><ul>{% for item in result.confluences %}<li>{{ item }}</li>{% else %}<li>None confirmed</li>{% endfor %}</ul></div>
+      <div class="col-md-6"><h6>Conflicts / warnings</h6><ul>{% for item in result.conflicts + result.risk_notes %}<li>{{ item }}</li>{% else %}<li>None returned</li>{% endfor %}</ul></div>
+    </div>
+    <p class="mb-0"><strong>Invalidation:</strong> {{ result.invalidation }}</p>
+  </div></div>
+
+  {% if smc %}
+  <div class="card shadow-sm mb-4"><div class="card-body p-4">
+    <h5>SMC confluence breakdown</h5>
+    <p class="small text-muted">Nine core factors are averaged into a confluence score. It is a transparent checklist, not a win probability.</p>
+    <div class="table-responsive"><table class="table table-sm align-middle">
+      <thead><tr><th>Factor</th><th style="width:45%">Score</th><th>Band</th></tr></thead>
+      <tbody>
+      {% for f in smc.factors %}
+        <tr><td>{{ f.name }}</td>
+          <td><div class="progress" style="height:10px"><div class="progress-bar {{ 'bg-success' if f.band == 'strong' else 'bg-warning' if f.band == 'mixed' else 'bg-danger' }}" style="width: {{ (f.score * 100)|round|int }}%"></div></div></td>
+          <td><span class="badge {{ 'bg-success' if f.band == 'strong' else 'bg-warning text-dark' if f.band == 'mixed' else 'bg-danger' }}">{{ f.band }}</span> <span class="small text-muted">{{ f.score }}</span></td></tr>
+      {% endfor %}
+      </tbody></table></div>
+    <p class="mb-1"><strong>Confluence score: {{ smc.score }}</strong> ({{ smc.band }} band)</p>
+    {% if smc.history %}
+      <p class="small mb-0">In your history, {{ smc.history.trades }} linked trades fell in the {{ smc.band }} band:
+        win rate {{ smc.history.win_rate }}%, average P&amp;L {{ smc.history.expectancy }}
+        {% if smc.baseline %}(all linked trades: {{ smc.baseline.win_rate }}% win rate, {{ smc.baseline.expectancy }} average){% endif %}.
+        Descriptive association only.</p>
+    {% else %}
+      <p class="small text-muted mb-0">No linked trades in this band yet, so there is no history to compare against.</p>
+    {% endif %}
+  </div></div>
+  {% endif %}
+
+  {% if prediction %}
+    {% if prediction.probability_available %}
+      <div class="alert alert-info"><strong>Personal historical model estimate: {{ prediction.win_probability }}%</strong>
+        <div class="small">Based on {{ prediction.model_metrics.labelled_samples }} labelled chart examples. Cross-validated balanced accuracy {{ prediction.model_metrics.balanced_accuracy }}; Brier score {{ prediction.model_metrics.brier_score }}. {{ prediction.disclaimer }}
+        {% if in_sample %}<br><strong>In-sample:</strong> this setup is part of the history the model was trained on, so this estimate flatters the model. Use the cross-validated metrics, not this single number, to judge accuracy.{% endif %}</div>
+      </div>
+    {% else %}
+      <div class="alert alert-warning"><strong>No personal win probability yet.</strong>
+        {{ prediction.learning_status.message if prediction.learning_status else 'More completed chart examples are required.' }}
+        {% if prediction.learning_status and prediction.learning_status.labelled_samples is defined %}
+        <div class="small">Labelled chart examples so far: {{ prediction.learning_status.labelled_samples }}.</div>{% endif %}
+      </div>
+    {% endif %}
+  {% endif %}
+
+  {% if trade %}
+  <div class="card shadow-sm mb-4"><div class="card-body p-4">
+    <h5>What actually happened (revealed after the trade)</h5>
+    <p class="mb-2">
+      <span class="badge {{ 'bg-success' if trade.pnl and trade.pnl > 0 else 'bg-danger' if trade.pnl and trade.pnl < 0 else 'bg-secondary' }}">
+        {{ 'WIN' if trade.pnl and trade.pnl > 0 else 'LOSS' if trade.pnl and trade.pnl < 0 else 'BREAKEVEN' if trade.pnl is not none else 'OPEN' }}</span>
+      {{ trade.direction }} {{ trade.size }} lots · entry {{ trade.entry_price }} → exit {{ trade.exit_price if trade.exit_price is not none else '—' }}
+      · P&amp;L {{ trade.pnl if trade.pnl is not none else '—' }}
+      · <a href="{{ url_for('trades.view_trade', trade_id=trade.id) }}">open journal entry</a>
+    </p>
+    {% if trade.mistakes %}<p class="small text-muted mb-2">Journal note: {{ trade.mistakes }}</p>{% endif %}
+    {% if result_image %}
+      <a href="{{ url_for('static', filename='uploads/' + result_image.filename) }}" target="_blank" rel="noopener">
+        <img class="img-fluid rounded" loading="lazy" alt="Trade result chart" src="{{ url_for('static', filename='uploads/' + result_image.filename) }}"></a>
+      <div class="small text-muted mt-1">This result chart is stored only on the journal trade. It is never part of the analysis inputs, so the learning data has no hindsight.</div>
+    {% endif %}
+  </div></div>
+  {% endif %}
+</div>
+{% endblock %}

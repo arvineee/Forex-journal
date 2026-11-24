@@ -60,3 +60,12 @@
 - Adds a transparent nine-factor SMC confluence score breakdown (low / medium / high); it is explicitly not a win probability or entry signal.
 - Excludes Asian/London/session fields from playbook edge findings because screenshot timestamps may not establish session boundaries.
 - Adds authenticated JSON endpoint `/ai/smc-playbook` and displays the results in the Performance Intelligence Centre.
+
+## SMC demo dataset and replay viewer
+
+- Added `smc_demo/generate_smc_demo.py`: builds 30 synthetic setups (Asian range, liquidity sweep, CHoCH/BOS displacement, OB/FVG retracement), draws labelled 4H/1H/30M/15M charts captured at entry, and forward-simulates each trade candle by candle with SL/TP detection. Position size risks about 1% of a $10,000 account using the journal's own `calculate_pnl`.
+- Added `seed_smc_demo.py`: creates a separate `smc_demo` user with the 30 trades, chart analyses and image files. It never touches other users and can remove everything with `--remove`.
+- Added `/ai/chart-analysis/<id>`: replays a saved analysis (charts, per-timeframe reading, factor bands, confluence score against the user's own history, model estimate). It needs no Gemini key.
+- Chart Lab lists up to 40 recent analyses, links each to its replay page and shows a banner on the demo account.
+- Result charts are stored only as trade images and are never analysis inputs, so the learning data has no hindsight.
+- Added `tests/test_smc_demo_data.py`.
