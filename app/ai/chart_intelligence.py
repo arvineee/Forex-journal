@@ -20,6 +20,7 @@ from app import db
 from app.models import Trade
 from app.ai.models import AIChartAnalysis
 from app.ai.trade_plan import normalise_trade_plan
+from app.ai.session_context import classify_session
 
 logger = logging.getLogger(__name__)
 TIMEFRAMES = ("4H", "1H", "30M", "15M")
@@ -55,7 +56,7 @@ def _image_from_upload(upload):
     return filename, raw, image
 
 
-def _normalise_analysis(data):
+def _normalise_analysis(data, reference_price=None, symbol=""):
     """Constrain model output to stable, numeric fields used by learning."""
     if not isinstance(data, dict):
         raise ValueError("The vision model returned an invalid analysis.")
@@ -93,7 +94,8 @@ def _normalise_analysis(data):
         "chart_readability": str(data.get("chart_readability", "unknown"))[:100],
     }
     # Entry / stop / take-profit (or a pending order when the call is WAIT), checked for sane geometry.
-    result["trade_plan"] = normalise_trade_plan(data.get("trade_plan"), result["setup_direction"])
+    result["trade_plan"] = normalise_trade_plan(data.get("trade_plan"), result["setup_direction"],
+                                                reference_price=reference_price, symbol=symbol)
     return result
 
 
@@ -113,7 +115,7 @@ def _string_list(value):
     return [str(x)[:250] for x in value[:12]]
 
 
-def analyse_four_timeframes(user_id, symbol, uploads, direction=None, trade_id=None):
+def analyse_four_timeframes(user_id, symbol, uploads, direction=None, trade_id=None, current_price=None, entry_time=None):
     """Analyse and persist one set of 4 timeframe screenshots."""
     symbol = re.sub(r"[^A-Za-z0-9._/-]", "", (symbol or "").upper())[:20]
     if not symbol:
@@ -131,6 +133,20 @@ def analyse_four_timeframes(user_id, symbol, uploads, direction=None, trade_id=N
             raise ValueError("The selected trade was not found in your journal.")
         if trade.symbol.upper() != symbol:
             raise ValueError("The chart symbol must match the linked journal trade.")
+
+    # Reference price: the one you typed wins; otherwise the linked trade's entry. Used to catch misread price axes.
+    try:
+        reference_price = float(current_price) if current_price not in (None, "") else None
+    except (TypeError, ValueError):
+        raise ValueError("Current price must be a number.")
+    if reference_price is not None and reference_price <= 0:
+        raise ValueError("Current price must be a positive number.")
+    if reference_price is None and trade is not None:
+        reference_price = trade.entry_price
+
+    # Session: the planned entry time you typed, else the linked trade's entry time (journal clock -> UTC via config).
+    session = classify_session(entry_time or (trade.entry_time if trade is not None else None),
+                               current_app.config.get("JOURNAL_UTC_OFFSET_HOURS", 0))
 
     image_payloads, image_rows = [], {}
     for tf in TIMEFRAMES:
@@ -212,7 +228,11 @@ Do not interpret these feature scores as a win probability. session_quality must
 be 0.5 unless the trading session/time is actually provided.
 """
     model = _gemini_model()
-    content = [prompt, f"Instrument: {symbol}. User's intended direction: {direction or 'not specified'}."]
+    ref_note = (f" The current price is {reference_price}; your prices must be consistent with it."
+                if reference_price else "")
+    session_note = (f" Planned entry time: {session['utc_time']} ({session['label']}). Use it for session context."
+                    if session else "")
+    content = [prompt, f"Instrument: {symbol}. User's intended direction: {direction or 'not specified'}.{ref_note}{session_note}"]
     for tf, image in image_payloads:
         content.extend([f"{tf} timeframe chart:", image])
     response = None
@@ -222,7 +242,7 @@ be 0.5 unless the trading session/time is actually provided.
             response = model.generate_content(
                 content,
                 generation_config={"temperature": 0.1, "response_mime_type": "application/json"},
-                request_options={"timeout": 150},
+                request_options={"timeout": int(current_app.config.get("GEMINI_TIMEOUT", 150))},
             )
             break
         except Exception as exc:  # 504 DeadlineExceeded / 503 ServiceUnavailable are retryable
@@ -236,7 +256,11 @@ be 0.5 unless the trading session/time is actually provided.
         raise RuntimeError("The AI service timed out. Please try again in a minute.") from last_exc
     text = (getattr(response, "text", "") or "").strip()
     text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text, flags=re.I)
-    parsed = _normalise_analysis(json.loads(text))
+    parsed = _normalise_analysis(json.loads(text), reference_price=reference_price, symbol=symbol)
+
+    if session:   # a known entry time replaces the model's "unknown" 0.5 with a rule-of-thumb session score
+        parsed["session"] = session
+        parsed["features"]["session_quality"] = session["score"]
 
     record = AIChartAnalysis(
         user_id=user_id,
@@ -297,7 +321,7 @@ def learn_chart_outcomes(user_id):
         f"{row.trade_id}:{row.outcome_label}:{row.id}" for row in rows
     )
     fingerprint = hashlib.sha256(fingerprint_source.encode("utf-8")).hexdigest()
-    model_dir = current_app.config.get("AI_MODEL_DIR", "/tmp/forex_ai_models")
+    model_dir = current_app.config.get("AI_MODEL_DIR") or os.path.join(current_app.instance_path, "ai_models")
     os.makedirs(model_dir, exist_ok=True)
     model_path = os.path.join(model_dir, f"user_{user_id}_chart_model.pkl")
     meta_path = os.path.join(model_dir, f"user_{user_id}_chart_meta.json")

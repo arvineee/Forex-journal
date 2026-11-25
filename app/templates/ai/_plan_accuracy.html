@@ -1,0 +1,16 @@
+{# Expects `plan_accuracy` from app/ai/plan_review.summarise_reviews #}
+{% if plan_accuracy and plan_accuracy.plans_reviewed %}
+<div class="card shadow-sm mb-4"><div class="card-body p-4">
+  <h5>AI plan accuracy <span class="text-muted small">(plans linked to your journal trades)</span></h5>
+  <div class="row g-2 text-center mb-2">
+    <div class="col-6 col-md-3"><div class="border rounded p-2"><div class="small text-muted">Plans reviewed</div><div class="fs-5 fw-bold">{{ plan_accuracy.plans_reviewed }}</div></div></div>
+    <div class="col-6 col-md-3"><div class="border rounded p-2"><div class="small text-muted">Take profit / stop loss</div><div class="fs-5 fw-bold">{{ plan_accuracy.tp_hit }} / {{ plan_accuracy.sl_hit }}</div></div></div>
+    <div class="col-6 col-md-3"><div class="border rounded p-2"><div class="small text-muted">Plan hit rate</div><div class="fs-5 fw-bold">{{ plan_accuracy.plan_hit_rate ~ '%' if plan_accuracy.plan_hit_rate is not none else 'n/a' }}</div></div></div>
+    <div class="col-6 col-md-3"><div class="border rounded p-2"><div class="small text-muted">Avg result (R)</div><div class="fs-5 fw-bold">{{ plan_accuracy.avg_r_all if plan_accuracy.avg_r_all is not none else 'n/a' }}</div></div></div>
+  </div>
+  <p class="small mb-1"><strong>Followed the plan:</strong> {{ plan_accuracy.followed }} trades (avg {{ plan_accuracy.avg_r_followed if plan_accuracy.avg_r_followed is not none else 'n/a' }} R).
+     <strong>Deviated:</strong> {{ plan_accuracy.deviated }} trades (avg {{ plan_accuracy.avg_r_deviated if plan_accuracy.avg_r_deviated is not none else 'n/a' }} R).
+     Closed manually: {{ plan_accuracy.manual_exit }}. Still open: {{ plan_accuracy.open }}.</p>
+  <p class="small text-muted mb-0">{% if not plan_accuracy.enough_data %}Fewer than 10 trades reached the plan's stop or target, so treat these numbers as anecdotes, not a track record.{% else %}Hits are inferred from where each trade closed; the journal does not store the price path. R = result divided by the plan's planned risk.{% endif %}</p>
+</div></div>
+{% endif %}

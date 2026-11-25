@@ -71,6 +71,9 @@ class Config:
     # Gemini AI (trade pattern analysis, AI insights)
     GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
     GEMINI_MODEL = os.environ.get('GEMINI_MODEL', 'gemini-3.1-flash-lite')
+    GEMINI_CHAT_MODEL = os.environ.get('GEMINI_CHAT_MODEL') or GEMINI_MODEL   # chatbot model; defaults to GEMINI_MODEL
+    JOURNAL_UTC_OFFSET_HOURS = float(os.environ.get('JOURNAL_UTC_OFFSET_HOURS', 0))  # your journal clock vs UTC (Nairobi = 3)
+    GEMINI_TIMEOUT = int(os.environ.get('GEMINI_TIMEOUT', 150))                # seconds per chart-analysis request
     AI_MODEL_DIR = os.environ.get("AI_MODEL_DIR", os.path.join(BASE_DIR, "instance", "ai_models"))
 
     # Application

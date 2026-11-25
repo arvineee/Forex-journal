@@ -1,6 +1,7 @@
 from flask import render_template, redirect, url_for, flash, request, jsonify, send_file, current_app
 from flask_login import login_required, current_user
 import os
+import re
 import json
 from datetime import datetime
 from app import db
@@ -88,6 +89,26 @@ def index():
                              'date_to': date_to
                          })
 
+def _prefill_from_plan(form, args):
+    """Pre-fill the New Trade form from an AI trade plan link (GET only; every value is validated)."""
+    def num(key):
+        try:
+            v = float(args.get(key, ""))
+            return v if v > 0 and v == v else None
+        except (TypeError, ValueError):
+            return None
+    symbol = re.sub(r"[^A-Za-z0-9/._-]", "", args.get("symbol", ""))[:10].upper()
+    if not symbol:
+        return
+    form.symbol.data = symbol
+    if args.get("direction") in ("BUY", "SELL"):
+        form.direction.data = args["direction"]
+    form.entry_price.data = num("entry_price")
+    form.size.data = num("size")
+    form.timeframe.data = "15m"
+    form.notes.data = args.get("notes", "")[:500]
+
+
 @trades_bp.route('/new', methods=['GET', 'POST'])
 @login_required
 def new_trade():
@@ -153,6 +174,8 @@ def new_trade():
     
     # Pre-fill form with current time
     form.entry_time.data = datetime.now()
+    if request.method == 'GET' and request.args.get('symbol'):
+        _prefill_from_plan(form, request.args)
     
     # Get AI prediction for current setup (if available)
     ai_prediction = None

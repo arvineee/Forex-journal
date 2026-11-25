@@ -202,3 +202,13 @@ After every Chart Lab analysis the AI also proposes a **trade plan**, shown in a
 - If prices cannot be read from the screenshots the AI must return no order rather than guess.
 
 `app/ai/trade_plan.py` validates every plan whatever the model says: stop/target on the correct side of entry, pending orders on the correct side of the current price, WAIT never a market order, and a warning when reward:risk is below 1:1.5. A plan that fails is shown with a red "do not use" notice. Levels are estimates read from screenshots, not live prices or signals. Analyses saved before this feature show "no order"; the synthetic demo analyses are back-filled with the simulated entry/SL/TP when you re-run `seed_smc_demo.py`. Tests: `python -m pytest tests/test_trade_plan.py` (no Flask needed).
+
+### Trade-plan extras
+
+- **Price-scale check:** type the *current price* in Chart Lab (or link a trade). The AI's levels are rejected if they are far from it, which catches a misread price axis.
+- **Plan accuracy:** `/ai/plan-accuracy` and the Chart Lab panel compare each plan with the linked trade (take profit hit, stop hit, closed manually, followed or deviated, result in R). Hits are inferred from where the trade closed; fewer than 10 resolved plans is flagged as anecdotal.
+- **Lot size:** the plan card suggests a lot size for 0.5 / 1 / 2 % risk from your latest recorded balance (rounded down), and **Log this plan in my journal** pre-fills New Trade (SL/TP/R:R go into the notes).
+- **Sessions:** a planned entry time (or the linked trade's) scores the session (London/New York kill zones etc.). Set `JOURNAL_UTC_OFFSET_HOURS` (Nairobi = 3) so your journal clock converts to UTC. The scores are rules of thumb, not evidence.
+- **Config:** `GEMINI_CHAT_MODEL` (chatbot model, defaults to `GEMINI_MODEL`), `GEMINI_TIMEOUT` (seconds, default 150), `AI_MODEL_DIR` (keep it on persistent storage).
+- **Tests:** `pip install -r requirements.txt -r requirements-dev.txt && python -m pytest`; GitHub Actions runs the same on every push.
+

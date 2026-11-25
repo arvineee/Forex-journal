@@ -35,7 +35,7 @@
   </div>
 
   <div class="card shadow-sm mb-4"><div class="card-body p-4">
-    {% with plan=result.trade_plan, symbol=record.symbol %}{% include 'ai/_trade_plan.html' %}{% endwith %}
+    {% with plan=result.trade_plan, session=result.session, symbol=record.symbol, review=plan_review, risk_form=true %}{% include 'ai/_trade_plan.html' %}{% endwith %}
   </div></div>
 
   <div class="card shadow-sm mb-4"><div class="card-body p-4">

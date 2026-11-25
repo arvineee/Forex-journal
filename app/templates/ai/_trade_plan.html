@@ -18,6 +18,7 @@
     {% endif %}
   </div>
 
+  {% if session %}<div class="small text-muted mb-2">Entry session: <strong>{{ session.label }}</strong> ({{ session.utc_time }}) - rule-of-thumb liquidity score {{ session.score }}{% if session.kill_zone %}, kill zone{% endif %}. This is context, not evidence that this session works for you.</div>{% endif %}
   {% if plan.available %}
     {% if not plan.valid %}
       <div class="alert alert-danger py-2 small mb-2"><strong>This plan failed a sanity check - do not use it.</strong>
@@ -30,6 +31,27 @@
       <div class="col-6 col-md-3"><div class="border rounded p-2"><div class="small text-muted">Reward : risk</div><div class="fs-5 fw-bold">1 : {{ plan.risk_reward }}</div></div></div>
     </div>
     {% if plan.current_price %}<div class="small text-muted mt-2">Price read from the 15M chart: {{ fmt % plan.current_price }}</div>{% endif %}
+    {% if plan.valid %}
+      {% if sizing %}
+        <div class="border rounded p-2 mt-2 small">
+          <strong>Suggested size: {{ '%.2f' % sizing.lots }} lots</strong>
+          to risk {{ sizing.risk_pct|round(1) }}% of {{ '%.2f' % sizing.balance }}
+          (about {{ '%.2f' % sizing.loss_at_sl }} lost at the stop, {{ '%.2f' % sizing.profit_at_tp }} gained at the target).
+          {% if risk_form %}
+          <form method="get" class="d-inline ms-2"><select name="risk" class="form-select form-select-sm d-inline w-auto" onchange="this.form.submit()">
+            {% for r in [0.5, 1.0, 2.0] %}<option value="{{ r }}" {{ 'selected' if r == risk_pct }}>{{ r }}% risk</option>{% endfor %}
+          </select></form>
+          {% endif %}
+          {% for w in sizing.warnings %}<div class="text-warning-emphasis">&#9888; {{ w }}</div>{% endfor %}
+        </div>
+      {% else %}
+        <div class="small text-muted mt-2">Record an account balance to see a suggested lot size.</div>
+      {% endif %}
+      <a class="btn btn-sm btn-outline-primary mt-2"
+         href="{{ url_for('trades.new_trade', symbol=symbol, direction=plan.side, entry_price=plan.entry, size=(sizing.lots if sizing else none),
+                 notes='[AI PLAN] ' ~ plan.order_label ~ ' | SL ' ~ (fmt % plan.stop_loss) ~ ' | TP ' ~ (fmt % plan.take_profit) ~ ' | R:R 1:' ~ plan.risk_reward) }}">
+        Log this plan in my journal</a>
+    {% endif %}
     {% if plan.order_type != 'market' and plan.trigger %}<p class="small mt-2 mb-1"><strong>Activate when:</strong> {{ plan.trigger }}</p>{% endif %}
     {% if plan.expiry %}<p class="small mb-1"><strong>Cancel if:</strong> {{ plan.expiry }}</p>{% endif %}
     <p class="small mb-1"><strong>Why these levels:</strong> {{ plan.rationale }}</p>
@@ -37,6 +59,7 @@
   {% else %}
     <p class="small mb-1">{{ plan.rationale or 'No order proposed for this analysis.' }}</p>
   {% endif %}
+  {% if review %}<div class="alert alert-secondary py-2 small mt-2 mb-0"><strong>What happened:</strong> {{ review.label }}{% if review.realised_r is not none %} ({{ review.realised_r }} R{% if review.plan_rr %}, plan was 1:{{ review.plan_rr }}{% endif %}){% endif %}.</div>{% endif %}
   <div class="small text-muted mt-2">Levels are estimated by an AI from screenshots, not live prices or a signal. Check them against your platform and position-size to your own risk rules before placing anything. Not financial advice.</div>
 </div>
 <script>

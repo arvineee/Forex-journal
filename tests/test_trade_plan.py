@@ -64,6 +64,25 @@ class TradePlanTests(unittest.TestCase):
         self.assertEqual((once["entry"], once["stop_loss"], once["take_profit"], once["valid"]),
                          (twice["entry"], twice["stop_loss"], twice["take_profit"], twice["valid"]))
 
+    def test_misread_price_axis_is_caught_by_reference_price(self):
+        ok = tp.normalise_trade_plan(plan(), "BUY", reference_price=1.0852, symbol="EURUSD")
+        self.assertTrue(ok["valid"], ok["problems"])
+        self.assertTrue(ok["checked_against_reference"])
+        bad = tp.normalise_trade_plan(plan(current_price=1.2850, entry=1.2850, stop_loss=1.2820, take_profit=1.2910),
+                                      "BUY", reference_price=1.0852, symbol="EURUSD")
+        self.assertFalse(bad["valid"])
+        self.assertTrue(any("price axis" in p or "scale" in p for p in bad["problems"]))
+
+    def test_gold_gets_wider_tolerance(self):
+        raw = plan(current_price=2650, entry=2650, stop_loss=2640, take_profit=2690)
+        self.assertTrue(tp.normalise_trade_plan(raw, "BUY", reference_price=2655, symbol="XAUUSD")["valid"])
+
+    def test_reference_survives_a_second_normalise(self):
+        bad = tp.normalise_trade_plan(plan(current_price=1.2850, entry=1.2850, stop_loss=1.2820, take_profit=1.2910),
+                                      "BUY", reference_price=1.0852, symbol="EURUSD")
+        again = tp.normalise_trade_plan(bad, "BUY", symbol="EURUSD")
+        self.assertFalse(again["valid"])
+
     def test_demo_helper_builds_a_valid_plan(self):
         raw = tp.plan_from_levels("SELL", 2562.28, 2565.28, 2554.35)
         self.assertTrue(tp.normalise_trade_plan(raw, "SELL")["valid"])

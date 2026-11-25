@@ -6,11 +6,14 @@ import logging
 from flask import render_template, request, jsonify, current_app, abort
 from flask_login import login_required, current_user
 from app import db
-from app.models import Trade, TradeImage
+from app.models import Trade, TradeImage, AccountBalance
+from app.utils.helpers import calculate_pnl
 from . import ai_bp
 from .learning_engine import ForexAI
 from .chatbot import ForexChatbot
 from .models import AIInsight, AILearningLog, AIChartAnalysis
+from .plan_review import review_plan, summarise_reviews
+from .sizing import suggest_size
 from .chart_intelligence import analyse_four_timeframes, predict_from_chart, learn_chart_outcomes, compare_chart_outcomes, build_smc_playbook, score_smc_setup
 
 logger = logging.getLogger(__name__)
@@ -146,6 +149,46 @@ def get_patterns():
 
 
 
+def _sizing_for(user_id, plan, symbol, risk_pct):
+    """Lot size for the plan from the user's latest recorded balance (None if no balance or no valid plan)."""
+    latest = (AccountBalance.query.filter_by(user_id=user_id)
+              .order_by(AccountBalance.date.desc()).first())
+    if not latest:
+        return None
+    return suggest_size(plan, latest.balance, risk_pct, calculate_pnl, symbol)
+
+
+def _risk_pct_arg(value, default=1.0):
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return default
+    return number if 0 < number <= 10 else default
+
+
+def _plan_reviews(user_id):
+    """Review every saved trade plan whose analysis is linked to a journal trade (one query each way)."""
+    rows = (AIChartAnalysis.query.filter(AIChartAnalysis.user_id == user_id,
+                                         AIChartAnalysis.trade_id.isnot(None))
+            .order_by(AIChartAnalysis.created_at.asc()).all())
+    trades = {t.id: t for t in Trade.query.filter(
+        Trade.user_id == user_id, Trade.id.in_([r.trade_id for r in rows] or [0])).all()}
+    latest = {}
+    for row in rows:                      # one (latest) analysis per trade
+        latest[row.trade_id] = row
+    reviews = []
+    for trade_id, row in latest.items():
+        try:
+            plan = json.loads(row.analysis_json).get("trade_plan")
+        except (TypeError, ValueError):
+            continue
+        review = review_plan(plan, trades.get(trade_id))
+        if review:
+            review["trade_id"], review["analysis_id"], review["symbol"] = trade_id, row.id, row.symbol
+            reviews.append(review)
+    return reviews
+
+
 # ------------------------------------------------------------------ #
 # Multi-timeframe chart intelligence                                   #
 # ------------------------------------------------------------------ #
@@ -156,6 +199,7 @@ def chart_lab():
     """Upload 4H/1H/30M/15M charts for a single top-down analysis."""
     result = None
     prediction = None
+    sizing = None
     error = None
     if request.method == 'POST':
         try:
@@ -164,10 +208,14 @@ def chart_lab():
                 symbol=request.form.get('symbol', ''),
                 direction=request.form.get('direction', ''),
                 trade_id=request.form.get('trade_id') or None,
+                current_price=request.form.get('current_price') or None,
+                entry_time=request.form.get('entry_time') or None,
                 uploads={tf: request.files.get(tf) for tf in ('4H', '1H', '30M', '15M')},
             )
             prediction = predict_from_chart(current_user.id, result)
             result['analysis_id'] = record.id
+            sizing = _sizing_for(current_user.id, result.get('trade_plan'), record.symbol,
+                                 _risk_pct_arg(request.form.get('risk_pct')))
         except ValueError as exc:
             error = str(exc)
         except Exception as exc:
@@ -175,14 +223,21 @@ def chart_lab():
             logger.exception("Chart analysis failed for user %s", current_user.id)
             error = "Chart analysis failed. Check your Gemini API configuration and try again."
 
-    # Refresh labels when a previously linked journal trade has since closed.
-    for chart_row in AIChartAnalysis.query.filter_by(user_id=current_user.id).all():
-        if chart_row.trade_id:
-            linked_trade = Trade.query.filter_by(id=chart_row.trade_id, user_id=current_user.id).first()
+    # Refresh labels when a previously linked journal trade has since closed (2 queries, commit only on change).
+    linked_rows = (AIChartAnalysis.query.filter(AIChartAnalysis.user_id == current_user.id,
+                                                AIChartAnalysis.trade_id.isnot(None)).all())
+    if linked_rows:
+        linked_trades = {t.id: t for t in Trade.query.filter(
+            Trade.user_id == current_user.id, Trade.id.in_({r.trade_id for r in linked_rows})).all()}
+        changed = False
+        for chart_row in linked_rows:
+            linked_trade = linked_trades.get(chart_row.trade_id)
             if linked_trade and linked_trade.pnl is not None:
-                chart_row.outcome_label = (1 if linked_trade.pnl > 0 else
-                                           0 if linked_trade.pnl < 0 else None)
-    db.session.commit()
+                label = 1 if linked_trade.pnl > 0 else 0 if linked_trade.pnl < 0 else None
+                if chart_row.outcome_label != label:
+                    chart_row.outcome_label, changed = label, True
+        if changed:
+            db.session.commit()
 
     recent = (AIChartAnalysis.query.filter_by(user_id=current_user.id)
               .order_by(AIChartAnalysis.created_at.desc()).limit(40).all())
@@ -192,7 +247,8 @@ def chart_lab():
     if learning.get('ready'):
         learning = learning['metrics']
     outcome_comparison = compare_chart_outcomes(current_user.id)
-    return render_template('ai/chart_lab.html', result=result, prediction=prediction,
+    plan_accuracy = summarise_reviews(_plan_reviews(current_user.id))
+    return render_template('ai/chart_lab.html', result=result, prediction=prediction, plan_accuracy=plan_accuracy, sizing=sizing,
                            error=error, recent=recent, closed_trades=closed_trades,
                            learning=learning, outcome_comparison=outcome_comparison)
 
@@ -222,10 +278,14 @@ def chart_analysis_detail(analysis_id):
         db.session.rollback()
         logger.exception("Could not build learning context for chart analysis %s", analysis_id)
         prediction, smc = None, None
+    risk_pct = _risk_pct_arg(request.args.get('risk'))
+    sizing = _sizing_for(current_user.id, parsed.get('trade_plan'), record.symbol, risk_pct)
+    plan_review = review_plan(parsed.get('trade_plan'), trade) if trade is not None else None
     in_sample = bool(trade is not None and trade.status == 'closed' and record.outcome_label is not None)
     return render_template('ai/chart_detail.html', record=record, result=parsed, images=images,
                            trade=trade, result_image=result_image, prediction=prediction,
-                           smc=smc, in_sample=in_sample)
+                           smc=smc, in_sample=in_sample, plan_review=plan_review,
+                           sizing=sizing, risk_pct=risk_pct)
 
 
 @ai_bp.route('/chart-analysis/<int:analysis_id>/link', methods=['POST'])
@@ -250,6 +310,14 @@ def link_chart_analysis(analysis_id):
         'message': 'Chart linked to the closed trade and outcome recorded.' if record.outcome_label is not None
                    else 'Chart linked. Its outcome will be learned once the trade is closed.'
     })
+
+
+@ai_bp.route('/plan-accuracy', methods=['GET'])
+@login_required
+def plan_accuracy():
+    """AI trade plans compared with the linked trades' real results."""
+    reviews = _plan_reviews(current_user.id)
+    return jsonify({"summary": summarise_reviews(reviews), "reviews": reviews})
 
 
 @ai_bp.route('/chart-learning', methods=['GET'])

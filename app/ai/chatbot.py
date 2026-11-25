@@ -12,6 +12,7 @@ from flask import current_app
 from app import db
 from app.models import Trade, TradingStrategy
 from app.ai.models import AIInsight, AILearningLog, AIChartAnalysis
+from app.ai.plan_review import review_plan, summarise_reviews
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -32,7 +33,8 @@ def _get_gemini_client():
         if not api_key:
             raise RuntimeError("GEMINI_API_KEY is not configured.")
         genai.configure(api_key=api_key)
-        _gemini_client = genai.GenerativeModel("gemini-3.1-flash-lite")
+        _gemini_client = genai.GenerativeModel(
+            current_app.config.get("GEMINI_CHAT_MODEL") or current_app.config.get("GEMINI_MODEL") or "gemini-3.1-flash-lite")
         return _gemini_client
     except Exception as exc:
         logger.error("Failed to initialise Gemini client: %s", exc)
@@ -62,15 +64,22 @@ def _load_history_from_db(user_id: int, limit: int = 20) -> List[Dict]:
 
 
 def _save_history_to_db(user_id: int, messages: List[Dict]):
-    """Persist the latest conversation snapshot."""
+    """Persist the latest conversation snapshot (one row per user, updated in place)."""
     try:
-        log = AILearningLog(
-            user_id=user_id,
-            event_type="chatbot_conversation",
-            event_data=json.dumps({"messages": messages[-40:]}),  # keep last 40 turns
-            learned_insights=json.dumps([]),
+        payload = json.dumps({"messages": messages[-40:]})  # keep last 40 turns
+        row = (
+            AILearningLog.query
+            .filter_by(user_id=user_id, event_type="chatbot_conversation")
+            .order_by(AILearningLog.created_at.desc())
+            .first()
         )
-        db.session.add(log)
+        if row:
+            row.event_data = payload
+        else:
+            db.session.add(AILearningLog(
+                user_id=user_id, event_type="chatbot_conversation",
+                event_data=payload, learned_insights=json.dumps([]),
+            ))
         db.session.commit()
     except Exception as exc:
         logger.error("Failed to save chat history for user %s: %s", user_id, exc)
@@ -182,6 +191,46 @@ def _build_trading_context(user_id: int) -> str:
         except Exception:
             continue
 
+    # Latest AI trade plans (entry / SL / TP) and how they compared with the trades they were linked to.
+    plan_lines, reviews = [], []
+    plan_trades = {}
+    linked_ids = [row.trade_id for row in chart_rows if row.trade_id]
+    if linked_ids:
+        plan_trades = {t.id: t for t in Trade.query.filter(Trade.user_id == user_id, Trade.id.in_(linked_ids)).all()}
+    seen_trades = set()
+    for row in chart_rows:
+        try:
+            plan = json.loads(row.analysis_json).get("trade_plan")
+        except Exception:
+            continue
+        if not isinstance(plan, dict):
+            continue
+        if len(plan_lines) < 5:
+            if plan.get("available") and plan.get("valid"):
+                plan_lines.append(
+                    f"  {row.symbol}: {plan.get('side')} {plan.get('order_label', '')} entry {plan.get('entry')}, "
+                    f"SL {plan.get('stop_loss')}, TP {plan.get('take_profit')} (R:R 1:{plan.get('risk_reward')})"
+                    + (f"; activate when: {plan.get('trigger')}" if plan.get("trigger") else ""))
+            elif plan.get("available"):
+                plan_lines.append(f"  {row.symbol}: plan rejected by sanity check ({'; '.join(plan.get('problems', []))[:150]})")
+            else:
+                plan_lines.append(f"  {row.symbol}: no order proposed ({plan.get('action', 'NONE')})")
+        if row.trade_id and row.trade_id not in seen_trades:   # chart_rows is newest first: keep the latest per trade
+            seen_trades.add(row.trade_id)
+            reviews.append(review_plan(plan, plan_trades.get(row.trade_id)))
+    plan_summary = summarise_reviews(reviews)
+    if plan_summary["plans_reviewed"]:
+        plan_acc_line = (
+            f"Plans linked to trades: {plan_summary['plans_reviewed']} | closed: {plan_summary['closed']} | "
+            f"take profit hit: {plan_summary['tp_hit']} | stop hit: {plan_summary['sl_hit']} | "
+            f"closed manually: {plan_summary['manual_exit']} | followed the plan: {plan_summary['followed']} "
+            f"(avg {plan_summary['avg_r_followed']} R) vs deviated: {plan_summary['deviated']} "
+            f"(avg {plan_summary['avg_r_deviated']} R). "
+            + ("" if plan_summary["enough_data"] else "Fewer than 10 plans resolved, so this is anecdotal.")
+        )
+    else:
+        plan_acc_line = "No AI plans have been linked to journal trades yet."
+
     context = f"""
 === TRADER PROFILE ===
 Total trades: {total}
@@ -211,6 +260,10 @@ Outcome-labelled chart reviews: {len(chart_labelled)} ({chart_wins} wins, {chart
 Recent chart reviews:
 {chr(10).join(chart_lines) or '  No chart reviews saved yet'}
 
+=== LATEST AI TRADE PLANS ===
+{chr(10).join(plan_lines) or '  No trade plans yet'}
+{plan_acc_line}
+
 === AI INSIGHTS ALREADY DETECTED ===
 {chr(10).join(insight_lines) or '  Run full analysis to generate insights'}
 """.strip()
@@ -233,6 +286,7 @@ Your job:
 - Never fabricate statistics. If you don't have enough data, say so.
 - Keep replies under 300 words unless the user asks for a detailed report.
 - Suggest one follow-up question at the end of each response when it would be helpful.
+- AI trade-plan levels are estimates read from screenshots, not signals. Never present them as guaranteed, and if fewer than 10 plans have resolved, call the accuracy figures anecdotal.
 
 You have access to the following live snapshot of this trader's journal:
 
@@ -289,10 +343,8 @@ class ForexChatbot:
 
         self._history = history
 
-        # Persist every 5 assistant turns to avoid hammering the DB
-        assistant_turns = sum(1 for m in history if m["role"] == "assistant")
-        if assistant_turns % 5 == 0:
-            _save_history_to_db(self.user_id, history)
+        # Save after every turn: it is a single-row update, so a restart never loses recent messages.
+        _save_history_to_db(self.user_id, history)
 
         return {
             "text": reply_text,

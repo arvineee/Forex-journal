@@ -61,7 +61,8 @@ class ForexAI:
         self.patterns: Dict[str, TradePattern] = {}
         self.prediction_model: Optional[RandomForestClassifier] = None
         configured_dir = current_app.config.get("AI_MODEL_DIR") if has_app_context() else None
-        self.model_dir = configured_dir or os.environ.get("AI_MODEL_DIR", "/tmp/forex_ai_models")
+        self.model_dir = configured_dir or os.environ.get("AI_MODEL_DIR") or os.path.join(
+            current_app.instance_path if has_app_context() else "instance", "ai_models")
         os.makedirs(self.model_dir, exist_ok=True)
 
     # ------------------------------------------------------------------ #

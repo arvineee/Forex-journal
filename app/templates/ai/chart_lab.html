@@ -13,7 +13,7 @@
   {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
   {% if current_user.username == 'smc_demo' %}
   <div class="alert alert-info small" role="alert">
-    <strong>Demo account.</strong> The 30 setups below use synthetic charts and simulated trades, so you can see the
+    <strong>Demo account.</strong> The setups below use synthetic charts and simulated trades, so you can see the
     pipeline work without a Gemini key. Open any setup to replay its analysis. Win/loss outcomes were simulated with a
     deliberate link to setup quality, so any "edge" found here is built into the demo data and is not evidence about real markets.
   </div>
@@ -48,6 +48,25 @@
             </select>
           </div>
         </div>
+        <div class="row g-3 mb-3">
+          <div class="col-md-4">
+            <label class="form-label">Current price <span class="text-muted small">(recommended)</span></label>
+            <input class="form-control" name="current_price" type="number" step="any" min="0" placeholder="Last price on your platform">
+            <div class="form-text">Used to catch a misread price axis. Falls back to the linked trade's entry price.</div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Planned entry time <span class="text-muted small">(optional)</span></label>
+            <input class="form-control" name="entry_time" type="datetime-local">
+            <div class="form-text">Scores the trading session. Falls back to the linked trade's entry time.</div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Risk per trade</label>
+            <select class="form-select" name="risk_pct">
+              {% for r in ['0.5','1','2'] %}<option value="{{ r }}" {{ 'selected' if r == '1' }}>{{ r }}% of balance</option>{% endfor %}
+            </select>
+            <div class="form-text">Used to suggest a lot size for the plan.</div>
+          </div>
+        </div>
         <div class="row g-3">
           {% for tf, description in [('4H','Higher-timeframe bias and major structure'),('1H','Market structure and dealing range'),('30M','Setup development and liquidity'),('15M','Entry trigger and execution confirmation')] %}
           <div class="col-md-6">
@@ -65,6 +84,8 @@
     </div>
   </div>
 
+  {% include 'ai/_plan_accuracy.html' %}
+
   {% if result %}
   <div class="card shadow-sm mb-4">
     <div class="card-body p-4">
@@ -74,7 +95,7 @@
         <div class="text-muted small">Analysis #{{ result.analysis_id }}</div>
       </div>
       <p>{{ result.summary }}</p>
-      {% with plan=result.trade_plan, symbol=(request.form.get('symbol', '')|upper) %}{% include 'ai/_trade_plan.html' %}{% endwith %}
+      {% with plan=result.trade_plan, session=result.session, symbol=(request.form.get('symbol', '')|upper) %}{% include 'ai/_trade_plan.html' %}{% endwith %}
       <h5 class="mt-4">Top-down timeframe breakdown</h5>
       <div class="row g-3">
         {% for tf in ['4H','1H','30M','15M'] %}

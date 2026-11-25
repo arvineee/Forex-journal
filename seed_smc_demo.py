@@ -28,6 +28,7 @@ from app.ai.models import AIChartAnalysis, AIInsight, AILearningLog, TradePatter
 from app.ai.chart_intelligence import (  # noqa: E402
     _normalise_analysis, build_smc_playbook, learn_chart_outcomes)
 from app.ai.trade_plan import plan_from_levels  # noqa: E402
+from app.ai.session_context import classify_session  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TFS = ("4H", "1H", "30M", "15M")
@@ -153,6 +154,7 @@ def main():
                         s["direction"], s["entry_price"], s["sl"], s["tp"],
                         "Market entry on the OB/FVG retest; stop beyond the sweep extreme, target at the opposing liquidity.")
                 parsed = _normalise_analysis(analysis)   # same schema/clamping as live Gemini output
+                parsed["session"] = classify_session(entry_time)   # demo times are UTC; shown only, features untouched
                 db.session.add(AIChartAnalysis(
                     user_id=user.id, trade_id=trade.id, symbol=s["symbol"], direction=s["direction"],
                     analysis_json=json.dumps(parsed), image_files_json=json.dumps(stored),

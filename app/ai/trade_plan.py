@@ -49,14 +49,22 @@ def _decimals(*values):
     return best
 
 
+def _tolerances(symbol):
+    """(max % gap between the model's current price and your reference, max % gap for entry/SL/TP)."""
+    sym = (symbol or "").upper().replace("/", "")
+    if "XAU" in sym or "GOLD" in sym:
+        return 1.0, 4.0
+    return 0.5, 2.0
+
+
 def empty_plan(action="NONE", reason="No trade plan was returned for this analysis."):
     return {"available": False, "valid": False, "action": action, "order_type": "none",
             "order_label": ORDER_LABELS["none"], "side": None, "current_price": None, "entry": None,
             "stop_loss": None, "take_profit": None, "risk": None, "reward": None, "risk_reward": None,
-            "decimals": 2, "trigger": "", "expiry": "", "rationale": reason, "problems": [], "warnings": []}
+            "decimals": 2, "reference_price": None, "checked_against_reference": False, "trigger": "", "expiry": "", "rationale": reason, "problems": [], "warnings": []}
 
 
-def normalise_trade_plan(raw, setup_direction):
+def normalise_trade_plan(raw, setup_direction, reference_price=None, symbol=""):
     action = str(setup_direction or "").strip().upper()
     if action not in ("BUY", "SELL", "WAIT"):
         return empty_plan("NONE", "The analysis did not reach a BUY, SELL or WAIT decision, so no order is proposed.")
@@ -71,6 +79,9 @@ def normalise_trade_plan(raw, setup_direction):
     entry, sl, tp = _num(raw.get("entry")), _num(raw.get("stop_loss")), _num(raw.get("take_profit"))
     current = _num(raw.get("current_price"))
     plan["current_price"] = current
+    # A price you supplied (or your linked trade's entry) beats the model's reading of the axis.
+    reference = _num(reference_price) or _num(raw.get("reference_price"))
+    plan["reference_price"] = reference
 
     if order_type == "none" or None in (entry, sl, tp):
         why = ("The model could not read prices reliably enough to propose levels."
@@ -96,6 +107,19 @@ def normalise_trade_plan(raw, setup_direction):
                             f"{'below' if order_type in ('buy_limit', 'sell_stop') else 'above'} the current price.")
     if current is None and order_type in PENDING:
         warnings.append("Current price was not readable, so the pending-order side could not be checked.")
+
+    if reference:
+        tol_now, tol_levels = _tolerances(symbol)
+        gap = lambda v: abs(v - reference) / reference * 100
+        dd = _decimals(reference)
+        if current is not None and gap(current) > tol_now:
+            problems.append(f"The AI read the current price as {current} but the reference price is {reference:.{dd}f} "
+                            f"({gap(current):.1f}% apart) - it probably misread the price axis.")
+        off = [name for name, v in (("entry", entry), ("stop loss", sl), ("take profit", tp)) if gap(v) > tol_levels]
+        if off:
+            problems.append(f"The {', '.join(off)} {'is' if len(off) == 1 else 'are'} more than {tol_levels:g}% away from the "
+                            f"reference price {reference:.{dd}f} - the price scale looks wrong.")
+        plan["checked_against_reference"] = True
 
     risk, reward = abs(entry - sl), abs(tp - entry)
     rr = round(reward / risk, 2) if risk else None
