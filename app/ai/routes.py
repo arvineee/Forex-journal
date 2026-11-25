@@ -3,6 +3,7 @@ AI Routes for Forex Journal
 """
 import json
 import logging
+import traceback
 from flask import render_template, request, jsonify, current_app, abort
 from flask_login import login_required, current_user
 from app import db
@@ -221,7 +222,9 @@ def chart_lab():
         except Exception as exc:
             db.session.rollback()
             logger.exception("Chart analysis failed for user %s", current_user.id)
-            error = "Chart analysis failed. Check your Gemini API configuration and try again."
+            traceback.print_exc()   # always reaches the server error log, even when no logging handler is configured
+            error = (f"Chart analysis failed ({type(exc).__name__}: {str(exc)[:200]}). "
+                     "Check your Gemini API configuration and the server error log, then try again.")
 
     # Refresh labels when a previously linked journal trade has since closed (2 queries, commit only on change).
     linked_rows = (AIChartAnalysis.query.filter(AIChartAnalysis.user_id == current_user.id,

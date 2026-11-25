@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import re
+import traceback
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional
 from flask import current_app
@@ -330,6 +331,7 @@ class ForexChatbot:
             reply_text = self._call_gemini(system, history)
         except Exception as exc:
             logger.error("Gemini call failed for user %s: %s", self.user_id, exc)
+            traceback.print_exc()   # make the failure visible in the server error log
             reply_text = (
                 "I'm having trouble connecting to the AI service right now. "
                 "Please try again in a moment."
