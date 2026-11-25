@@ -74,6 +74,7 @@
         <div class="text-muted small">Analysis #{{ result.analysis_id }}</div>
       </div>
       <p>{{ result.summary }}</p>
+      {% with plan=result.trade_plan, symbol=(request.form.get('symbol', '')|upper) %}{% include 'ai/_trade_plan.html' %}{% endwith %}
       <h5 class="mt-4">Top-down timeframe breakdown</h5>
       <div class="row g-3">
         {% for tf in ['4H','1H','30M','15M'] %}

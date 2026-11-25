@@ -1,0 +1,53 @@
+{# Expects `plan` (a normalised trade plan, see app/ai/trade_plan.py) and `symbol`. #}
+{% set plan = plan or {} %}
+{% set dp = plan.decimals or 5 %}
+{% set fmt = '%.' ~ dp ~ 'f' %}
+<div class="border rounded-3 p-3 my-3 {{ 'border-success' if plan.valid and plan.side == 'BUY' else 'border-danger' if plan.valid and plan.side == 'SELL' else 'border-warning' }}" id="trade-plan">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+    <h5 class="mb-0">AI trade plan
+      {% if plan.available %}
+        <span class="badge {{ 'bg-success' if plan.side == 'BUY' else 'bg-danger' }}">{{ plan.side }}</span>
+        <span class="badge bg-secondary">{{ plan.order_label }}</span>
+      {% else %}
+        <span class="badge bg-secondary">{{ plan.action or 'NONE' }} - no order</span>
+      {% endif %}
+    </h5>
+    {% if plan.available and plan.valid %}
+      <button type="button" class="btn btn-sm btn-outline-secondary" id="copy-plan-btn"
+        data-plan="{{ symbol }} {{ plan.order_label }} | Entry {{ fmt % plan.entry }} | SL {{ fmt % plan.stop_loss }} | TP {{ fmt % plan.take_profit }} | R:R 1:{{ plan.risk_reward }}">Copy plan</button>
+    {% endif %}
+  </div>
+
+  {% if plan.available %}
+    {% if not plan.valid %}
+      <div class="alert alert-danger py-2 small mb-2"><strong>This plan failed a sanity check - do not use it.</strong>
+        <ul class="mb-0">{% for p in plan.problems %}<li>{{ p }}</li>{% endfor %}</ul></div>
+    {% endif %}
+    <div class="row g-2 text-center">
+      <div class="col-6 col-md-3"><div class="border rounded p-2"><div class="small text-muted">{{ 'Entry' if plan.order_type == 'market' else 'Pending entry' }}</div><div class="fs-5 fw-bold">{{ fmt % plan.entry }}</div></div></div>
+      <div class="col-6 col-md-3"><div class="border rounded p-2"><div class="small text-muted">Stop loss</div><div class="fs-5 fw-bold text-danger">{{ fmt % plan.stop_loss }}</div></div></div>
+      <div class="col-6 col-md-3"><div class="border rounded p-2"><div class="small text-muted">Take profit</div><div class="fs-5 fw-bold text-success">{{ fmt % plan.take_profit }}</div></div></div>
+      <div class="col-6 col-md-3"><div class="border rounded p-2"><div class="small text-muted">Reward : risk</div><div class="fs-5 fw-bold">1 : {{ plan.risk_reward }}</div></div></div>
+    </div>
+    {% if plan.current_price %}<div class="small text-muted mt-2">Price read from the 15M chart: {{ fmt % plan.current_price }}</div>{% endif %}
+    {% if plan.order_type != 'market' and plan.trigger %}<p class="small mt-2 mb-1"><strong>Activate when:</strong> {{ plan.trigger }}</p>{% endif %}
+    {% if plan.expiry %}<p class="small mb-1"><strong>Cancel if:</strong> {{ plan.expiry }}</p>{% endif %}
+    <p class="small mb-1"><strong>Why these levels:</strong> {{ plan.rationale }}</p>
+    {% for w in plan.warnings %}<div class="small text-warning-emphasis">&#9888; {{ w }}</div>{% endfor %}
+  {% else %}
+    <p class="small mb-1">{{ plan.rationale or 'No order proposed for this analysis.' }}</p>
+  {% endif %}
+  <div class="small text-muted mt-2">Levels are estimated by an AI from screenshots, not live prices or a signal. Check them against your platform and position-size to your own risk rules before placing anything. Not financial advice.</div>
+</div>
+<script>
+  (function () {
+    var b = document.getElementById('copy-plan-btn');
+    if (!b) return;
+    b.addEventListener('click', function () {
+      var t = b.getAttribute('data-plan');
+      (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () {
+        b.textContent = 'Copied';
+      }, function () { window.prompt('Copy the plan:', t); });
+    });
+  })();
+</script>

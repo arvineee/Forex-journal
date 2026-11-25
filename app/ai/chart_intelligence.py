@@ -19,6 +19,7 @@ from werkzeug.utils import secure_filename
 from app import db
 from app.models import Trade
 from app.ai.models import AIChartAnalysis
+from app.ai.trade_plan import normalise_trade_plan
 
 logger = logging.getLogger(__name__)
 TIMEFRAMES = ("4H", "1H", "30M", "15M")
@@ -91,6 +92,8 @@ def _normalise_analysis(data):
         "risk_notes": _string_list(data.get("risk_notes")),
         "chart_readability": str(data.get("chart_readability", "unknown"))[:100],
     }
+    # Entry / stop / take-profit (or a pending order when the call is WAIT), checked for sane geometry.
+    result["trade_plan"] = normalise_trade_plan(data.get("trade_plan"), result["setup_direction"])
     return result
 
 
@@ -175,8 +178,35 @@ Return ONLY valid JSON with this schema:
  },
  "confluences":["..."],"conflicts":["..."],
  "invalidation":"...", "summary":"...", "risk_notes":["..."],
- "chart_readability":"clear|mixed|poor"
+ "chart_readability":"clear|mixed|poor",
+ "trade_plan":{
+  "current_price":0.0,
+  "order_type":"market|buy_limit|sell_limit|buy_stop|sell_stop|none",
+  "entry":0.0,"stop_loss":0.0,"take_profit":0.0,
+  "trigger":"what must happen before this order is valid / when to place it",
+  "expiry":"when to cancel the order if it has not filled",
+  "rationale":"why these three levels"
+ }
 }
+TRADE PLAN RULES (follow exactly):
+- If setup_direction is BUY or SELL: order_type is "market" (entry = the last visible
+  15M close / current price) unless the best entry is clearly a retest of an order block or
+  FVG, in which case use the same-side limit order ("buy_limit" for BUY, "sell_limit" for SELL).
+- If setup_direction is WAIT: you MUST propose the most probable PENDING order for when the
+  setup completes (buy_limit/sell_limit at an order block or FVG, or buy_stop/sell_stop at a
+  structure break), with entry, stop_loss and take_profit, plus the trigger and expiry.
+  Never use "market" with WAIT.
+- Read every price from the price axis or the labels printed on the charts. Interpolate
+  between axis ticks if needed. If prices are not readable, set order_type to "none" and
+  leave the numbers null; never guess or invent levels.
+- stop_loss goes just beyond the invalidation level (sweep extreme or the order block /
+  structure that, if broken, kills the idea). take_profit goes at the next opposing
+  liquidity pool or swing. A BUY needs stop_loss < entry < take_profit; a SELL needs
+  take_profit < entry < stop_loss. A buy_limit is below the current price, a sell_limit above,
+  a buy_stop above, a sell_stop below.
+- Aim for at least 1:1.5 reward-to-risk; if the structure cannot offer it, say so in
+  rationale and in risk_notes instead of stretching the take profit.
+- current_price must be the last visible close on the 15M chart.
 For each numeric feature use a score from 0 (very poor/absent) to 1 (strong).
 Do not interpret these feature scores as a win probability. session_quality must
 be 0.5 unless the trading session/time is actually provided.

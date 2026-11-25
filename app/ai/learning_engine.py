@@ -21,6 +21,23 @@ from app.ai.models import AIInsight, TradePattern, AILearningLog
 logger = logging.getLogger(__name__)
 
 
+def _json_safe(obj):
+    """json.dumps default= hook: convert numpy/pandas/datetime types to plain Python."""
+    if isinstance(obj, np.integer):
+        return int(obj)
+    if isinstance(obj, np.floating):
+        return None if np.isnan(obj) else float(obj)
+    if isinstance(obj, np.bool_):
+        return bool(obj)
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    if isinstance(obj, (datetime, pd.Timestamp)):
+        return obj.isoformat()
+    if isinstance(obj, (set, tuple)):
+        return list(obj)
+    return str(obj)
+
+
 class ForexAI:
     """
     AI Learning Engine — analyses user trades and surfaces actionable insights.

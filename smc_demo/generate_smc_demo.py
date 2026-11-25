@@ -471,6 +471,10 @@ def build_analysis(sc):
         "summary": f"{tier} on {sc['symbol']} ({sc['direction']}). Aligned: {sum(1 for _ in confl)} factors, conflicts: {len(confs)}. "
                    f"Entry via {zone_txt} at {lm['f']*100:.0f}% of the displacement leg.",
         "risk_notes": risks, "chart_readability": "clear",
+        "trade_plan": {"current_price": sc["entry_price"], "order_type": "market", "entry": sc["entry_price"],
+                       "stop_loss": sc["sl"], "take_profit": sc["tp"], "trigger": "", "expiry": "",
+                       "rationale": f"Market entry on the {zone_txt}; stop beyond the sweep extreme {fm(lm['S'])}, "
+                                    f"target the external {liq_target} (planned 1:{sc['params']['rr']})."},
     }
 
 

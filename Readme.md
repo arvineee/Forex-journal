@@ -192,3 +192,13 @@ The bundled demo now holds **50 setups** (200 entry charts + 50 result charts). 
 Then log in as `smc_demo` and open **Chart Lab**, choose a setup and use *View analysis*, then open **Performance** for the SMC playbook.
 
 What is real and what is not: the charts, trades and analyses are generated. The saved analyses are written directly in Chart Lab's JSON schema, so the live Gemini vision step is not exercised. The simulator ties win odds to setup quality, so any pattern the playbook or model finds is built into the data and says nothing about real markets. The personal chart model unlocks at 40 labelled trades (10 wins, 10 losses); even then, small synthetic samples give cross-validated metrics close to chance. Use `--count 150` on the generator for a larger set and check the reported metrics rather than a single probability.
+
+### AI trade plan (entry / stop loss / take profit)
+
+After every Chart Lab analysis the AI also proposes a **trade plan**, shown in a card above the timeframe breakdown (and on the saved-analysis page):
+
+- **BUY / SELL** -> a market order (or a same-side limit at the order block / FVG) with entry, stop loss, take profit and reward:risk.
+- **WAIT** -> a **pending order** (buy/sell limit or stop) with entry, stop loss, take profit, the condition that activates it and when to cancel it.
+- If prices cannot be read from the screenshots the AI must return no order rather than guess.
+
+`app/ai/trade_plan.py` validates every plan whatever the model says: stop/target on the correct side of entry, pending orders on the correct side of the current price, WAIT never a market order, and a warning when reward:risk is below 1:1.5. A plan that fails is shown with a red "do not use" notice. Levels are estimates read from screenshots, not live prices or signals. Analyses saved before this feature show "no order"; the synthetic demo analyses are back-filled with the simulated entry/SL/TP when you re-run `seed_smc_demo.py`. Tests: `python -m pytest tests/test_trade_plan.py` (no Flask needed).

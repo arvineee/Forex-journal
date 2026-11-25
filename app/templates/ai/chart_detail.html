@@ -35,6 +35,10 @@
   </div>
 
   <div class="card shadow-sm mb-4"><div class="card-body p-4">
+    {% with plan=result.trade_plan, symbol=record.symbol %}{% include 'ai/_trade_plan.html' %}{% endwith %}
+  </div></div>
+
+  <div class="card shadow-sm mb-4"><div class="card-body p-4">
     <h5>How the AI read it</h5>
     <p>{{ result.summary }}</p>
     <div class="row g-3">

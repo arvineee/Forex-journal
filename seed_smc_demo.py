@@ -27,6 +27,7 @@ from app.models import AccountBalance, Trade, TradeImage, TradingStrategy, User 
 from app.ai.models import AIChartAnalysis, AIInsight, AILearningLog, TradePattern  # noqa: E402
 from app.ai.chart_intelligence import (  # noqa: E402
     _normalise_analysis, build_smc_playbook, learn_chart_outcomes)
+from app.ai.trade_plan import plan_from_levels  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TFS = ("4H", "1H", "30M", "15M")
@@ -146,7 +147,12 @@ def main():
                     copied.append(dst)
                     db.session.add(TradeImage(filename=rname, image_type="exit_chart", trade_id=trade.id))
 
-                parsed = _normalise_analysis(s["analysis"])   # same schema/clamping as live Gemini output
+                analysis = dict(s["analysis"])
+                if "trade_plan" not in analysis:                  # manifests made before the trade-plan feature
+                    analysis["trade_plan"] = plan_from_levels(
+                        s["direction"], s["entry_price"], s["sl"], s["tp"],
+                        "Market entry on the OB/FVG retest; stop beyond the sweep extreme, target at the opposing liquidity.")
+                parsed = _normalise_analysis(analysis)   # same schema/clamping as live Gemini output
                 db.session.add(AIChartAnalysis(
                     user_id=user.id, trade_id=trade.id, symbol=s["symbol"], direction=s["direction"],
                     analysis_json=json.dumps(parsed), image_files_json=json.dumps(stored),
